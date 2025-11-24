@@ -1,6 +1,7 @@
 module PaddleRails
   class SubscriptionPrice < ApplicationRecord
     self.table_name = "paddle_rails_subscription_prices"
+    self.inheritance_column = nil # Disable STI since we use 'type' for Paddle price type
 
     belongs_to :subscription_plan, class_name: "PaddleRails::SubscriptionPlan"
 
