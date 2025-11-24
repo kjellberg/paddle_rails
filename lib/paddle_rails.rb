@@ -1,3 +1,4 @@
+require "paddle"
 require "paddle_rails/version"
 require "paddle_rails/engine"
 

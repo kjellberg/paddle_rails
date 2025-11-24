@@ -23,4 +23,5 @@ Gem::Specification.new do |spec|
   end
 
   spec.add_dependency "rails", ">= 8.1.1"
+  spec.add_dependency "paddle", "~> 2.6"
 end
