@@ -1,9 +1,29 @@
+# frozen_string_literal: true
+
 module PaddleRails
+  # Service class for syncing Paddle products and prices to local database.
+  #
+  # Fetches all products and prices from the Paddle API and creates or updates
+  # corresponding {SubscriptionPlan} and {SubscriptionPrice} records locally.
+  #
+  # @example Sync all products and prices
+  #   PaddleRails::ProductSync.call
+  #
+  # @see SubscriptionPlan
+  # @see SubscriptionPrice
   class ProductSync
+    # Convenience method to create a new instance and call it.
+    #
+    # @return [ProductSync] The instance that was called
     def self.call
       new.call
     end
 
+    # Perform the sync operation.
+    #
+    # Syncs all products and prices from Paddle to local database.
+    #
+    # @return [void]
     def call
       sync_products
       sync_prices
@@ -11,6 +31,13 @@ module PaddleRails
 
     private
 
+    # Sync all products from Paddle API.
+    #
+    # Fetches products in pages of 50 and creates or updates local
+    # {SubscriptionPlan} records.
+    #
+    # @return [void]
+    # @raise [StandardError] If product sync fails
     def sync_products
       page = 1
       per_page = 50
@@ -28,6 +55,11 @@ module PaddleRails
       end
     end
 
+    # Sync a single product to local database.
+    #
+    # @param product_data [Paddle::Product] The product data from Paddle API
+    # @return [void]
+    # @raise [StandardError] If product save fails
     def sync_product(product_data)
       plan = SubscriptionPlan.find_or_initialize_by(paddle_product_id: product_data.id)
       
@@ -47,6 +79,13 @@ module PaddleRails
       raise
     end
 
+    # Sync all prices from Paddle API.
+    #
+    # Fetches prices in pages of 50 and creates or updates local
+    # {SubscriptionPrice} records.
+    #
+    # @return [void]
+    # @raise [StandardError] If price sync fails
     def sync_prices
       page = 1
       per_page = 50
@@ -64,6 +103,11 @@ module PaddleRails
       end
     end
 
+    # Sync a single price to local database.
+    #
+    # @param price_data [Paddle::Price] The price data from Paddle API
+    # @return [void]
+    # @raise [StandardError] If price save fails
     def sync_price(price_data)
       # Find the subscription plan by product_id
       plan = SubscriptionPlan.find_by(paddle_product_id: price_data.product_id)
@@ -114,6 +158,10 @@ module PaddleRails
       raise
     end
 
+    # Extract trial days from trial period data.
+    #
+    # @param trial_period [OpenStruct, nil] Trial period data from Paddle API
+    # @return [Integer, nil] Number of trial days, or nil if not applicable
     def extract_trial_days(trial_period)
       return nil unless trial_period
       
