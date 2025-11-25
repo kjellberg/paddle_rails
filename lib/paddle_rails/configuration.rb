@@ -15,11 +15,18 @@ module PaddleRails
     # @!attribute subscription_owner_authenticator
     #   @return [Proc] The block used to authenticate the subscription owner.
     #     Defaults to `current_user || warden.authenticate!(scope: :user)`
+    # @!attribute customer_portal_back_path
+    #   @return [Proc] The block used to generate the back link path shown in
+    #     the customer portal sidebar. Evaluated in the controller or view
+    #     context and defaults to `main_app.root_path`.
     # @!attribute api_key
     #   @return [String] The Paddle API key. Defaults to ENV["PADDLE_API_KEY"]
     # @!attribute public_token
     #   @return [String] The Paddle public token. Defaults to ENV["PADDLE_PUBLIC_TOKEN"]
-    attr_accessor :subscription_owner_authenticator, :api_key, :public_token
+    attr_accessor :subscription_owner_authenticator,
+                  :customer_portal_back_path,
+                  :api_key,
+                  :public_token
 
     # Initialize a new Configuration instance with default values.
     #
@@ -30,6 +37,12 @@ module PaddleRails
       @subscription_owner_authenticator = proc do
         current_user || warden.authenticate!(scope: :user)
       end
+
+      # Default back link in the customer portal sidebar
+      @customer_portal_back_path = proc do
+        main_app.root_path
+      end
+
       @api_key = ENV.fetch("PADDLE_API_KEY")
       @public_token = ENV.fetch("PADDLE_PUBLIC_TOKEN")
     end
@@ -52,6 +65,21 @@ module PaddleRails
     def subscription_owner_authenticator(&block)
       @subscription_owner_authenticator = block if block_given?
       @subscription_owner_authenticator
+    end
+
+    # Configure the customer portal back path block.
+    #
+    # @param block [Proc] The block to use for generating the back link path.
+    #   The block is evaluated in the context of the controller or view.
+    # @return [Proc] The configured back path block
+    #
+    # @example
+    #   config.customer_portal_back_path do
+    #     main_app.dashboard_path
+    #   end
+    def customer_portal_back_path(&block)
+      @customer_portal_back_path = block if block_given?
+      @customer_portal_back_path
     end
   end
 

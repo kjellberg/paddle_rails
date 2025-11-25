@@ -50,7 +50,7 @@ Set the following environment variables:
 
 ```bash
 PADDLE_API_KEY=your_api_key_here
-PADDLE_SIGNING_KEY=your_signing_key_here
+PADDLE_PUBLIC_TOKEN=your_public_token_here
 PADDLE_ENVIRONMENT=production  # or "sandbox"
 ```
 
@@ -59,11 +59,26 @@ Or configure in the initializer:
 ```ruby
 PaddleRails.configure do |config|
   config.api_key = ENV["PADDLE_API_KEY"]
-  config.signing_key = ENV["PADDLE_SIGNING_KEY"]
-  config.environment = "production" # or "sandbox"
-  config.custom_data_key = "owner_gid" # default
+  config.public_token = ENV["PADDLE_PUBLIC_TOKEN"]
+  
+  # Configure how to authenticate the subscription owner in the customer portal
+  config.subscription_owner_authenticator do
+    current_user || warden.authenticate!(scope: :user)
+  end
+  
+  # Configure the back link path in the customer portal sidebar
+  config.customer_portal_back_path do
+    main_app.root_path  # or main_app.dashboard_path, etc.
+  end
 end
 ```
+
+### Configuration Options
+
+- **`api_key`** - Your Paddle API key (defaults to `ENV["PADDLE_API_KEY"]`)
+- **`public_token`** - Your Paddle public token (defaults to `ENV["PADDLE_PUBLIC_TOKEN"]`)
+- **`subscription_owner_authenticator`** - A proc that returns the current subscription owner. Evaluated in controller/view context. Defaults to `current_user || warden.authenticate!(scope: :user)`
+- **`customer_portal_back_path`** - A proc that returns the path for the "Back" link in the customer portal sidebar. Evaluated in controller/view context. Defaults to `main_app.root_path`
 
 ## Usage
 

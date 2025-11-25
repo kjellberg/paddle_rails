@@ -70,9 +70,13 @@
         </p>
 
         <!-- Back Link -->
-        <a href="#" class="text-gray-600 hover:text-gray-900 text-sm font-medium inline-flex items-center gap-1">
-          ← Back
-        </a>
+        <% back_path_proc = PaddleRails.configuration.customer_portal_back_path %>
+        <% back_path = instance_exec(&back_path_proc) if back_path_proc %>
+        <% if back_path.present? %>
+          <%= link_to back_path, class: "text-gray-600 hover:text-gray-900 text-sm font-medium inline-flex items-center gap-1" do %>
+            ← Back
+          <% end %>
+        <% end %>
       </div>
     </aside>
 
