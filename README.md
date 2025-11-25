@@ -261,7 +261,7 @@ Methods available on any model that includes this concern:
 
 - `paddle_subscriptions` - Association to all subscriptions
 - `subscription` - Returns the current subscription or nil
-- `subscription?` - Returns true if user has a current subscription
+- `subscribed?` - Returns true if user has a current subscription
 - `create_paddle_checkout(paddle_price_id:, **options)` - Creates a Paddle checkout from a raw Paddle Price ID
 
 ### PaddleRails::Subscription
