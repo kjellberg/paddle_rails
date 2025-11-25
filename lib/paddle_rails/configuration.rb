@@ -1,12 +1,13 @@
 module PaddleRails
   class Configuration
-    attr_accessor :subscription_owner_authenticator
+    attr_accessor :subscription_owner_authenticator, :api_key
 
     def initialize
       # Default authenticator following Doorkeeper pattern
       @subscription_owner_authenticator = proc do
         current_user || warden.authenticate!(scope: :user)
       end
+      @api_key = ENV.fetch("PADDLE_API_KEY")
     end
 
     def subscription_owner_authenticator(&block)
