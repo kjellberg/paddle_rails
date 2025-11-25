@@ -8,5 +8,17 @@ module PaddleRails
         config.api_key = ENV.fetch("PADDLE_API_KEY")
       end
     end
+
+    config.to_prepare do
+      # Include controller concern in engine's ApplicationController
+      PaddleRails::ApplicationController.include(PaddleRails::SubscriptionOwner)
+
+      # Include view helper in engine's ApplicationHelper
+      PaddleRails::ApplicationHelper.include(PaddleRails::SubscriptionOwnerHelper)
+
+      # Make helpers available globally
+      ActionController::Base.include(PaddleRails::SubscriptionOwner)
+      ActionView::Base.include(PaddleRails::SubscriptionOwnerHelper)
+    end
   end
 end

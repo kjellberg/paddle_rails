@@ -1,6 +1,7 @@
 require "paddle"
 require "paddle_rails/version"
 require "paddle_rails/engine"
+require "paddle_rails/configuration"
 
 module PaddleRails
   # Your code goes here...
