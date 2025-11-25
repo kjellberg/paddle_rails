@@ -1,6 +1,4 @@
 class User < ApplicationRecord
-    include PaddleRails::SubscriptionOwner
-
     def name
         "John Doe"
     end

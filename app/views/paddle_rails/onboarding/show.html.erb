@@ -1,0 +1,133 @@
+<div class="min-h-screen flex items-center justify-center p-4 md:p-8">
+  <div class="w-full max-w-5xl">
+    <!-- Header -->
+    <div class="text-center mb-12">
+      <h1 class="text-3xl md:text-4xl lg:text-5xl font-semibold tracking-tight text-gray-900 mb-4">
+        Choose your plan
+      </h1>
+      <p class="text-gray-600 text-lg">Select the subscription plan that works best for you</p>
+    </div>
+
+    <!-- Plans Grid -->
+    <% if @plans.any? %>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
+        <% @plans.each_with_index do |plan, index| %>
+          <% active_prices = plan.prices.active.order(:unit_price) %>
+          <% next if active_prices.empty? %>
+
+          <% primary_price = active_prices.first %>
+          <% primary_amount = primary_price.unit_price ? (primary_price.unit_price / 100.0) : 0 %>
+          <% primary_currency = (primary_price.currency || "EUR").upcase %>
+          <% primary_billing = if primary_price.billing_interval.present? %>
+            <% case primary_price.billing_interval.downcase %>
+            <% when "month" %>
+              <% primary_price.billing_interval_count == 1 ? "month" : "#{primary_price.billing_interval_count} months" %>
+            <% when "year" %>
+              <% primary_price.billing_interval_count == 1 ? "year" : "#{primary_price.billing_interval_count} years" %>
+            <% else %>
+              <% primary_price.billing_interval %>
+            <% end %>
+          <% else %>
+            <% "one-time" %>
+          <% end %>
+          <% primary_label = "#{primary_amount.to_i} #{primary_currency} / #{primary_billing}" %>
+
+          <div
+            class="bg-white border border-gray-200 rounded-2xl p-6 md:p-7 flex flex-col justify-between"
+            data-plan-card="true"
+          >
+            <div class="flex flex-col gap-4">
+              <!-- Plan header -->
+              <div class="flex items-start justify-between">
+                <div>
+                  <h3 class="text-lg font-normal text-gray-900 mb-1"><%= plan.name.presence || "Plan #{index + 1}" %></h3>
+                  <p class="text-sm text-gray-500">
+                    <span class="font-light text-2xl text-gray-900"><%= primary_amount.to_i %></span>
+                    <span class="text-base text-gray-900 ml-0.5"><%= primary_currency %></span>
+                    <span class="text-sm text-gray-600 mx-1">/</span>
+                    <span class="text-sm text-gray-600"><%= primary_billing %></span>
+                  </p>
+                </div>
+              </div>
+
+              <!-- Placeholder feature list -->
+              <ul class="mt-2 space-y-1 text-sm text-gray-600">
+                <li>Includes <span class="font-medium">50,000</span> units per month (placeholder)</li>
+                <li>Priority processing and email support</li>
+                <li>Clean analytics and usage insights</li>
+              </ul>
+
+              <!-- Billing options (monthly / yearly etc.) -->
+              <% if active_prices.many? %>
+                <div class="mt-4">
+                  <label class="block text-xs font-medium text-gray-500 mb-1">Billing</label>
+                  <select
+                    class="block w-full rounded-lg border-gray-300 text-sm text-gray-900 focus:border-purple-500 focus:ring-purple-500"
+                    data-price-select="true"
+                  >
+                    <% active_prices.each do |price| %>
+                      <% amount = price.unit_price ? (price.unit_price / 100.0) : 0 %>
+                      <% currency = (price.currency || "EUR").upcase %>
+                      <% billing = if price.billing_interval.present? %>
+                        <% case price.billing_interval.downcase %>
+                        <% when "month" %>
+                          <% price.billing_interval_count == 1 ? "month" : "#{price.billing_interval_count} months" %>
+                        <% when "year" %>
+                          <% price.billing_interval_count == 1 ? "year" : "#{price.billing_interval_count} years" %>
+                        <% else %>
+                          <% price.billing_interval %>
+                        <% end %>
+                      <% else %>
+                        <% "one-time" %>
+                      <% end %>
+                      <% label = "#{amount.to_i} #{currency} / #{billing}" %>
+                      <option
+                        value="<%= price.paddle_price_id %>"
+                        data-price-label="<%= label %>"
+                        <%= "selected" if price == primary_price %>
+                      >
+                        <%= label %>
+                      </option>
+                    <% end %>
+                  </select>
+                </div>
+              <% end %>
+            </div>
+
+            <!-- Action button -->
+            <div class="mt-6">
+              <%= form_with url: onboarding_checkout_path, method: :post, local: true do |f| %>
+                <%= f.hidden_field :paddle_price_id, value: primary_price.paddle_price_id, data: { price_input: true } %>
+                <%= f.submit primary_label, class: "w-full px-4 py-2.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-medium rounded-lg hover:from-purple-600 hover:to-pink-600 transition-colors shadow-sm", data: { price_button: true } %>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="text-center py-12">
+        <p class="text-gray-600">No subscription plans available at this time.</p>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    document.querySelectorAll("[data-price-select]").forEach(function(select) {
+      select.addEventListener("change", function(event) {
+        var option = select.selectedOptions[0];
+        if (!option) return;
+
+        var card = select.closest("[data-plan-card]");
+        if (!card) return;
+
+        var hiddenField = card.querySelector("[data-price-input]");
+        var button = card.querySelector("[data-price-button]");
+
+        if (hiddenField) hiddenField.value = option.value;
+        if (button && option.dataset.priceLabel) button.value = option.dataset.priceLabel;
+      });
+    });
+  });
+</script>
