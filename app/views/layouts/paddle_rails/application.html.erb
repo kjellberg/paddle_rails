@@ -26,15 +26,38 @@
     <!-- Sidebar - On top on mobile, fixed on left on desktop -->
     <aside class="w-full md:w-80 bg-gray-100 flex-shrink-0 flex flex-col border-b md:border-b-0 md:border-r border-gray-200">
       <div class="p-6 md:p-8 flex-1 overflow-y-auto">
-        <!-- Profile/Store Name -->
-        <div class="mb-6 md:mb-8">
-          <div class="flex items-center gap-3 mb-2">
-            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center text-white font-semibold text-sm">
-              JS
+        <!-- Subscription Owner Banner -->
+        <% if subscription_owner %>
+          <% 
+            # Generate initials
+            initials = ""
+            if subscription_owner.respond_to?(:name) && subscription_owner.name.present?
+              name_parts = subscription_owner.name.strip.split(/\s+/)
+              if name_parts.length >= 2
+                initials = (name_parts.first[0] + name_parts.last[0]).upcase
+              elsif name_parts.length == 1
+                initials = name_parts.first[0..1].upcase
+              end
+            elsif subscription_owner.respond_to?(:email) && subscription_owner.email.present?
+              email_local = subscription_owner.email.split('@').first
+              initials = email_local[0..1].upcase
+            end
+          %>
+          <div class="mb-4">
+            <!-- Name and Email -->
+            <div class="flex-1 min-w-0">
+              <% if subscription_owner.respond_to?(:name) && subscription_owner.name.present? %>
+                <p class="text-sm font-medium text-gray-900 leading-snug truncate"><%= subscription_owner.name %></p>
+                <% if subscription_owner.respond_to?(:email) %>
+                  <p class="text-sm text-gray-500 leading-snug truncate mt-0.5"><%= subscription_owner.email %></p>
+                <% end %>
+              <% elsif subscription_owner.respond_to?(:email) %>
+                <p class="text-sm font-medium text-gray-900 leading-snug truncate"><%= subscription_owner.email %></p>
+              <% end %>
             </div>
-            <span class="font-light text-gray-900">Jojo's Store</span>
           </div>
-        </div>
+          <div class="h-px bg-gray-200/80 mb-6 md:mb-8"></div>
+        <% end %>
 
         <!-- Main Heading -->
         <h1 class="text-xl md:text-2xl font-normal text-gray-900 mb-3 leading-tight">
