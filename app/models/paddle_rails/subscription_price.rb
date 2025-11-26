@@ -9,5 +9,14 @@ module PaddleRails
 
     scope :active, -> { joins(:subscription_plan).where(paddle_rails_subscription_plans: { status: "active" }).where(status: "active") }
     scope :for_currency, ->(currency) { where(currency: currency) }
+
+    # Whether this price is active.
+    #
+    # Mirrors the `active` scope but operates on a single record.
+    #
+    # @return [Boolean]
+    def active?
+      status == "active"
+    end
   end
 end

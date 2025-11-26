@@ -332,11 +332,34 @@ user.create_paddle_checkout(paddle_price_id: price.paddle_price_id)
 Service class for creating checkouts:
 
 ```ruby
-PaddleRails::Checkout.create(
+# Quick helper that returns the hosted checkout URL
+checkout_url = PaddleRails::Checkout.url_for(
   owner: user,
   paddle_price_id: "pri_123",
   custom_data: { foo: "bar" }  # optional
 )
+
+redirect_to checkout_url, allow_other_host: true
+```
+
+If you need the full `Paddle::Transaction` object instead, you can use `.create`:
+
+```ruby
+checkout = PaddleRails::Checkout.create(
+  owner: user,
+  paddle_price_id: "pri_123",
+  custom_data: { foo: "bar" }  # optional
+)
+```
+
+In both cases, the `custom_data` hash you pass will be merged with the owner's
+GlobalID under the `"owner_gid"` key:
+
+```ruby
+{
+  "owner_gid" => user.to_gid_param,
+  "foo"       => "bar"
+}
 ```
 
 ## Development

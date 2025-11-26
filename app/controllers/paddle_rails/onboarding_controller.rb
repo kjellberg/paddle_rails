@@ -24,13 +24,10 @@ module PaddleRails
       end
 
       begin
-        checkout = subscription_owner.create_paddle_checkout(
-          paddle_price_id: price.paddle_price_id
+        checkout_url = PaddleRails::Checkout.url_for(
+          owner: subscription_owner,
+          paddle_price_id: price.paddle_price_id,
         )
-
-        # Paddle::Transaction (OpenStruct) returns checkout URL in checkout_url or url attribute
-        checkout_url = checkout.checkout_url if checkout.respond_to?(:checkout_url)
-        checkout_url ||= checkout.url if checkout.respond_to?(:url)
 
         if checkout_url.present?
           redirect_to checkout_url, allow_other_host: true
