@@ -6,8 +6,12 @@ module PaddleRails
       plans = SubscriptionPlan.active.includes(:prices)
 
       # Order plans by their lowest active price (cheapest first)
-      @plans = plans.sort_by do |plan|
+      sorted_plans = plans.sort_by do |plan|
         plan.prices.active.minimum(:unit_price) || Float::INFINITY
+      end
+
+      @plans = sorted_plans.each_with_index.map do |plan, index|
+        SubscriptionPlanPresenter.new(plan, index: index)
       end
     end
 
