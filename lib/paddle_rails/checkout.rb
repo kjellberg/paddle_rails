@@ -118,24 +118,38 @@ module PaddleRails
     def self.extract_url(transaction)
       return nil unless transaction
 
+      url = nil
+
       # Preferred: transaction.checkout.table[:url]
       if transaction.respond_to?(:checkout) && transaction.checkout
         checkout = transaction.checkout
         if checkout.respond_to?(:table)
           url = checkout.table[:url] || checkout.table["url"]
-          return url if url
         end
 
-        return checkout.url if checkout.respond_to?(:url)
+        url ||= checkout.url if checkout.respond_to?(:url)
       end
 
       # Fallback: nested details.checkout.url (for other Paddle shapes)
-      if transaction.respond_to?(:details) && transaction.details&.respond_to?(:checkout)
+      if url.nil? && transaction.respond_to?(:details) && transaction.details&.respond_to?(:checkout)
         nested = transaction.details.checkout
-        return nested.url if nested.respond_to?(:url)
+        url = nested.url if nested.respond_to?(:url)
       end
 
-      nil
+      rewrite_localhost_url(url)
+    end
+
+    # In development, Paddle may return https://localhost URLs which
+    # Rails typically serves over plain HTTP. Normalize those so we
+    # don't hit mixed-scheme issues in local setups.
+    #
+    # @param url [String, nil]
+    # @return [String, nil]
+    def self.rewrite_localhost_url(url)
+      return url unless url
+      return url unless defined?(Rails) && Rails.env.development?
+
+      url.sub(/\Ahttps:\/\/localhost\b/, "http://localhost")
     end
   end
 end
