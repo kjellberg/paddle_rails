@@ -14,7 +14,7 @@
   }
 
   .container {
-    max-width: 1200px;
+    max-width: 800px;
     margin: 0 auto;
   }
 
@@ -34,80 +34,46 @@
     font-size: 1.1rem;
   }
 
-  .plans-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem;
-    margin-top: 2rem;
-  }
-
-  .plan-card {
-    background: white;
-    border-radius: 12px;
-    padding: 2rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s, box-shadow 0.2s;
-  }
-
-  .plan-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-  }
-
-  .plan-name {
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: #2c3e50;
-    margin-bottom: 0.5rem;
-  }
-
-  .plan-description {
-    color: #7f8c8d;
-    margin-bottom: 1.5rem;
-    min-height: 3rem;
-  }
-
-  .prices-list {
-    list-style: none;
-  }
-
-  .price-item {
-    padding: 1rem;
-    margin-bottom: 0.75rem;
-    background: #f8f9fa;
-    border-radius: 8px;
-    border-left: 3px solid #3498db;
-  }
-
-  .price-header {
+  .billing-button-container {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
-    margin-bottom: 0.5rem;
+    min-height: 400px;
   }
 
-  .price-name {
-    font-weight: 600;
-    color: #2c3e50;
-  }
-
-  .price-amount {
+  .billing-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 1.5rem 3rem;
     font-size: 1.25rem;
-    font-weight: 700;
-    color: #27ae60;
-  }
-
-  .price-details {
-    font-size: 0.9rem;
-    color: #7f8c8d;
-  }
-
-  .no-plans {
-    text-align: center;
-    padding: 3rem;
-    color: #7f8c8d;
-    background: white;
+    font-weight: 600;
+    color: white;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
     border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    text-decoration: none;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    min-width: 280px;
+  }
+
+  .billing-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+  }
+
+  .billing-button:active {
+    transform: translateY(0);
+  }
+
+  .billing-button-icon {
+    width: 24px;
+    height: 24px;
+    fill: currentColor;
   }
 
   @media (max-width: 768px) {
@@ -115,8 +81,10 @@
       font-size: 2rem;
     }
 
-    .plans-grid {
-      grid-template-columns: 1fr;
+    .billing-button {
+      padding: 1.25rem 2rem;
+      font-size: 1.1rem;
+      min-width: 240px;
     }
   }
 </style>
@@ -124,53 +92,15 @@
 <div class="container">
   <header>
     <h1>Welcome, <%= current_user.name %></h1>
-    <p class="subtitle">Choose the perfect plan for you</p>
+    <p class="subtitle">Manage your subscription and billing</p>
   </header>
 
-  <% if @plans.any? %>
-    <div class="plans-grid">
-      <% @plans.each do |plan| %>
-        <div class="plan-card">
-          <div class="plan-name"><%= plan.name %></div>
-          <% if plan.description.present? %>
-            <div class="plan-description"><%= plan.description %></div>
-          <% end %>
-
-          <% if plan.prices.active.any? %>
-            <ul class="prices-list">
-              <% plan.prices.active.order(:unit_price).each do |price| %>
-                <li class="price-item">
-                  <div class="price-header">
-                    <span class="price-name"><%= price.name.presence || price.description.presence || "Standard" %></span>
-                    <% if price.unit_price.present? %>
-                      <span class="price-amount">
-                        <%= number_to_currency(price.unit_price.to_f / 100, unit: price.currency == "USD" ? "$" : price.currency == "EUR" ? "€" : price.currency) %>
-                      </span>
-                    <% end %>
-                  </div>
-                  <div class="price-details">
-                    <% if price.billing_interval.present? %>
-                      <%= price.billing_interval_count %> <%= price.billing_interval %><% if price.billing_interval_count > 1 %>s<% end %>
-                    <% else %>
-                      One-time
-                    <% end %>
-                    <% if price.trial_days.present? && price.trial_days > 0 %>
-                      · <%= price.trial_days %> day trial
-                    <% end %>
-                  </div>
-                </li>
-              <% end %>
-            </ul>
-          <% else %>
-            <p style="color: #7f8c8d; font-style: italic;">No prices available</p>
-          <% end %>
-        </div>
-      <% end %>
-    </div>
-  <% else %>
-    <div class="no-plans">
-      <p>No subscription plans available at the moment.</p>
-      <p style="margin-top: 1rem; font-size: 0.9rem;">Please sync products from Paddle to see available plans.</p>
-    </div>
-  <% end %>
+  <div class="billing-button-container">
+    <%= link_to billing_dashboard_path, class: "billing-button" do %>
+      <svg class="billing-button-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/>
+      </svg>
+      <span>Manage Billing</span>
+    <% end %>
+  </div>
 </div>

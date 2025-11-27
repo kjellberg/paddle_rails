@@ -36,6 +36,7 @@ module PaddleRails
       # Make helpers available globally
       ActionController::Base.include(PaddleRails::SubscriptionOwner)
       ActionView::Base.include(PaddleRails::SubscriptionOwnerHelper)
+      ActionView::Base.include(PaddleRails::ApplicationHelper)
     end
   end
 end
