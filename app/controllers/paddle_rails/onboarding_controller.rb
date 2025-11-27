@@ -48,7 +48,7 @@ module PaddleRails
       # Redirect to dashboard if user already has a subscription
       if subscription_owner.respond_to?(:subscription) && subscription_owner.subscription.present?
         redirect_to root_path
-      elsif subscription_owner.respond_to?(:subscribed?) && subscription_owner.subscribed?
+      elsif subscription_owner.respond_to?(:subscription?) && subscription_owner.subscription?
         redirect_to root_path
       end
     end

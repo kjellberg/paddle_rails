@@ -1,0 +1,94 @@
+<div class="max-w-2xl mx-auto p-8 md:p-12">
+  <div class="bg-red-50 border border-red-200 rounded-lg p-6 md:p-8">
+    <!-- Error Icon and Title -->
+    <div class="flex items-start gap-4 mb-6">
+      <div class="flex-shrink-0">
+        <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+      </div>
+      <div class="flex-1">
+        <h1 class="text-xl font-medium text-gray-900 mb-2">PaddleRails Configuration Error</h1>
+        <p class="text-gray-600 text-sm leading-relaxed">
+          Your PaddleRails integration is not properly configured. Please complete the following steps to set up the gem.
+        </p>
+      </div>
+    </div>
+
+    <!-- Checklist -->
+    <div class="space-y-4">
+      <h2 class="text-sm font-medium text-gray-900 mb-3">Configuration Checklist:</h2>
+      
+      <div class="space-y-3">
+        <!-- API Keys / Environment Variables -->
+        <div class="flex items-start gap-3">
+          <div class="flex-shrink-0 mt-0.5">
+            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div class="flex-1">
+            <h3 class="text-sm font-medium text-gray-900 mb-1">API Keys / Environment Variables</h3>
+            <p class="text-sm text-gray-600 mb-2">
+              Set the following environment variables in your application:
+            </p>
+            <ul class="list-disc list-inside text-sm text-gray-600 space-y-1 ml-4">
+              <li><code class="bg-gray-100 px-1.5 py-0.5 rounded text-xs font-mono">PADDLE_API_KEY</code> - Your Paddle API key</li>
+              <li><code class="bg-gray-100 px-1.5 py-0.5 rounded text-xs font-mono">PADDLE_PUBLIC_TOKEN</code> - Your Paddle public token</li>
+              <li><code class="bg-gray-100 px-1.5 py-0.5 rounded text-xs font-mono">PADDLE_ENVIRONMENT</code> - Set to "production" or "sandbox"</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Setup subscription_owner -->
+        <div class="flex items-start gap-3">
+          <div class="flex-shrink-0 mt-0.5">
+            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div class="flex-1">
+            <h3 class="text-sm font-medium text-gray-900 mb-1">Setup subscription_owner</h3>
+            <p class="text-sm text-gray-600 mb-2">
+              Configure the <code class="bg-gray-100 px-1.5 py-0.5 rounded text-xs font-mono">subscription_owner_authenticator</code> in your PaddleRails initializer:
+            </p>
+            <pre class="bg-gray-100 rounded p-3 text-xs font-mono text-gray-800 overflow-x-auto"><code>PaddleRails.configure do |config|
+  config.subscription_owner_authenticator do
+    current_user || warden.authenticate!(scope: :user)
+  end
+end</code></pre>
+          </div>
+        </div>
+
+        <!-- Add Subscribable concern -->
+        <div class="flex items-start gap-3">
+          <div class="flex-shrink-0 mt-0.5">
+            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div class="flex-1">
+            <h3 class="text-sm font-medium text-gray-900 mb-1">Add Subscribable concern to subscription owner</h3>
+            <p class="text-sm text-gray-600 mb-2">
+              Include the <code class="bg-gray-100 px-1.5 py-0.5 rounded text-xs font-mono">PaddleRails::Subscribable</code> concern in your subscription owner model:
+            </p>
+            <pre class="bg-gray-100 rounded p-3 text-xs font-mono text-gray-800 overflow-x-auto"><code>class User < ApplicationRecord
+  include PaddleRails::Subscribable
+end</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Documentation Link -->
+    <div class="mt-6 pt-6 border-t border-red-200">
+      <p class="text-sm text-gray-600">
+        For more information, see the 
+        <a href="https://github.com/kjellberg/paddle_rails" class="text-red-600 hover:text-red-700 font-medium underline" target="_blank" rel="noopener noreferrer">
+          PaddleRails documentation
+        </a>.
+      </p>
+    </div>
+  </div>
+</div>
+
