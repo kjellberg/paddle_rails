@@ -1,0 +1,2 @@
+web: cd test/dummy && bin/rails server -p 3000
+css: npm run dev

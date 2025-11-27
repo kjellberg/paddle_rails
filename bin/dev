@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -e
+
+# Run all development processes (Rails, Tailwind/PostCSS, Cloudflare tunnel)
+# using a Procfile, the Rails 7-style \"bin/dev\" entry point.
+
+if ! command -v foreman >/dev/null 2>&1; then
+  echo "foreman is not installed." >&2
+  echo "Install it with: gem install foreman" >&2
+  exit 1
+fi
+
+foreman start -f Procfile.dev "$@"
+
+

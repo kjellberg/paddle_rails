@@ -2,5 +2,8 @@
   "dependencies": {
     "@tailwindcss/cli": "^4.1.17",
     "tailwindcss": "^4.1.17"
+  },
+  "scripts": {
+    "dev": "npx tailwindcss -i ./app/assets/tailwind/application.css -o ./app/assets/stylesheets/paddle_rails/tailwind.css --watch"
   }
 }
