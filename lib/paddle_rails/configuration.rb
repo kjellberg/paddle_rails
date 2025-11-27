@@ -23,10 +23,13 @@ module PaddleRails
     #   @return [String] The Paddle API key. Defaults to ENV["PADDLE_API_KEY"]
     # @!attribute public_token
     #   @return [String] The Paddle public token. Defaults to ENV["PADDLE_PUBLIC_TOKEN"]
+    # @!attribute environment
+    #   @return [String] The Paddle environment ("sandbox" or "production"). Defaults to ENV["PADDLE_ENVIRONMENT"] or "sandbox"
     attr_accessor :subscription_owner_authenticator,
                   :customer_portal_back_path,
                   :api_key,
-                  :public_token
+                  :public_token,
+                  :environment
 
     # Initialize a new Configuration instance with default values.
     #
@@ -45,6 +48,7 @@ module PaddleRails
 
       @api_key = ENV.fetch("PADDLE_API_KEY")
       @public_token = ENV.fetch("PADDLE_PUBLIC_TOKEN")
+      @environment = ENV.fetch("PADDLE_ENVIRONMENT", "sandbox")
     end
 
     # Configure the subscription owner authenticator block.

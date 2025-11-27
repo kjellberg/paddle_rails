@@ -1,0 +1,39 @@
+<div class="min-h-screen flex flex-col justify-center p-4 md:p-8 max-w-4xl mx-auto">
+  <!-- Header -->
+  <div class="text-center mb-12">
+    <h1 class="text-3xl md:text-4xl lg:text-5xl font-semibold tracking-tight text-gray-900 mb-4">
+      Complete your purchase
+    </h1>
+    <p class="text-gray-600 text-lg">Review your order and complete the checkout process</p>
+  </div>
+
+  <!-- Checkout container where Paddle.js will render the inline checkout -->
+  <div id="checkout-container" class="checkout-container">
+    <!-- Paddle.js will automatically inject the checkout here when the transaction ID is present -->
+  </div>
+</div>
+
+<!-- script loaded here to make sure it's loaded after the page is rendered -->
+<script src="https://cdn.paddle.com/paddle/v2/paddle.js"></script>
+<script type="text/javascript">
+  Paddle.Environment.set("<%= PaddleRails.configuration.environment || 'sandbox' %>");
+  Paddle.Initialize({
+    token: "<%= PaddleRails.configuration.public_token %>",
+    checkout: {
+      settings: {
+        displayMode: "inline",
+        variant: "dark",
+        frameTarget: "checkout-container",
+        frameInitialHeight: "450",
+        frameStyle: "width: 100%; min-width: 312px; background-color: transparent; border: none;"
+      }
+    },
+    eventCallback: function(data) {
+      console.log(data);
+      if (data.name == "checkout.loaded") {
+      };
+      if (data.name == "checkout.completed") {
+      };
+    }
+  });
+</script>
