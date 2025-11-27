@@ -1,5 +1,5 @@
 class User < ApplicationRecord
-  #include PaddleRails::Subscribable
+  include PaddleRails::Subscribable
   
   def name
     "John Doe"
