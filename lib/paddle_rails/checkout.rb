@@ -5,7 +5,8 @@ module PaddleRails
   #
   # Wraps {Paddle::Transaction.create} and is responsible for:
   # - Building the items array from a Paddle price ID.
-  # - Merging the owner's GlobalID into the `custom_data` hash under "owner_gid".
+  # - Merging the owner's **signed** GlobalID into the `custom_data` hash under
+  #   the \"owner_sgid\" key, so the owner reference is tamper‑evident.
   # - Returning the resulting {Paddle::Transaction} instance.
   #
   # @example Basic usage
@@ -23,7 +24,8 @@ module PaddleRails
   #     custom_data: { foo: "bar" }
   #   )
   #
-  #   # custom_data will be merged with { "owner_gid" => user.to_gid_param }
+  #   # custom_data will be merged with a signed owner SGID:
+  #   # { \"owner_sgid\" => user.to_sgid_param(for: \"paddle_rails_owner\"), \"foo\" => \"bar\" }
   class Checkout
     attr_reader :owner, :paddle_price_id, :custom_data, :checkout_url
 
@@ -89,16 +91,24 @@ module PaddleRails
     private
 
     def merged_custom_data
-      base = { "owner_gid" => owner_gid }
+      base = { "owner_sgid" => owner_sgid }
       # Stringify keys to keep custom_data consistent with Paddle expectations
       base.merge(stringified_custom_data)
     end
 
-    def owner_gid
-      if owner.respond_to?(:to_gid_param)
-        owner.to_gid_param
-      elsif defined?(GlobalID)
-        GlobalID.create(owner).to_param
+    # Build a signed GlobalID string for the owner that can be verified later.
+    #
+    # NOTE: Webhook processing is not implemented yet, but when it is, you
+    # should resolve this using:
+    #
+    #   GlobalID::Locator.locate_signed(owner_sgid, for: \"paddle_rails_owner\")
+    #
+    # @return [String]
+    def owner_sgid
+      if owner.respond_to?(:to_sgid_param)
+        owner.to_sgid_param(for: "paddle_rails_owner")
+      elsif defined?(GlobalID::SignedGlobalID)
+        GlobalID::SignedGlobalID.create(owner, for: "paddle_rails_owner").to_s
       else
         owner.to_s
       end

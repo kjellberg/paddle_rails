@@ -118,10 +118,10 @@ paddle_price_id = "pri_123"
 checkout = user.create_paddle_checkout(paddle_price_id: paddle_price_id)
 
 # With additional options
-# Note: custom_data will be merged with the owner_gid automatically
+# Note: custom_data will be merged with a signed owner SGID automatically
 checkout = user.create_paddle_checkout(
   paddle_price_id: paddle_price_id,
-  custom_data: { foo: "bar" }  # This will be merged with { owner_gid: "..." }
+  custom_data: { foo: "bar" }  # This will be merged with { owner_sgid: "..." }
 )
 ```
 
@@ -211,7 +211,7 @@ The catalog is kept in sync with Paddle:
 ### Identity Flow
 
 1. **Checkout Creation**: When you call `user.create_paddle_checkout(paddle_price_id: "pri_123")`, the gem:
-   - Creates a custom_data hash: `{ "owner_gid": "gid://app/User/123" }`
+   - Creates a custom_data hash: `{ "owner_sgid": "signed-global-id-string" }`
    - Sends this to Paddle with the checkout request (`price_id` plus `custom_data`)
    - Paddle returns a checkout URL
 
@@ -353,12 +353,12 @@ checkout = PaddleRails::Checkout.create(
 ```
 
 In both cases, the `custom_data` hash you pass will be merged with the owner's
-GlobalID under the `"owner_gid"` key:
+**signed** GlobalID under the `"owner_sgid"` key:
 
 ```ruby
 {
-  "owner_gid" => user.to_gid_param,
-  "foo"       => "bar"
+  "owner_sgid" => user.to_sgid_param(for: "paddle_rails_owner"),
+  "foo"        => "bar"
 }
 ```
 
