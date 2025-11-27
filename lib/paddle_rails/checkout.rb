@@ -83,7 +83,9 @@ module PaddleRails
         custom_data: merged_custom_data
       }
 
-      attrs[:checkout] = { url: checkout_url } if checkout_url
+      if checkout_url
+        attrs[:checkout] = { url: normalize_checkout_url_for_paddle(checkout_url) }
+      end
 
       Paddle::Transaction.create(**attrs)
     end
@@ -118,6 +120,18 @@ module PaddleRails
       custom_data.to_h.transform_keys(&:to_s)
     end
 
+    # In development, convert all http:// URLs to https:// for
+    # checkout URLs to avoid Paddle's domain approval error.
+    #
+    # @param url [String, nil]
+    # @return [String, nil]
+    def normalize_checkout_url_for_paddle(url)
+      return url unless url
+      return url unless defined?(Rails) && Rails.env.development?
+
+      url.sub(/\Ahttp:\/\//, "https://")
+    end
+
     # Extract the hosted checkout URL from a Paddle::Transaction.
     #
     # The Paddle gem currently exposes this via an internal OpenStruct
@@ -149,7 +163,7 @@ module PaddleRails
       rewrite_localhost_url(url)
     end
 
-    # In development, Paddle may return https://localhost URLs which
+    # In development, Paddle may return https URLs which
     # Rails typically serves over plain HTTP. Normalize those so we
     # don't hit mixed-scheme issues in local setups.
     #
@@ -159,7 +173,7 @@ module PaddleRails
       return url unless url
       return url unless defined?(Rails) && Rails.env.development?
 
-      url.sub(/\Ahttps:\/\/localhost\b/, "http://localhost")
+      url.sub(/\Ahttps:\/\//, "http://")
     end
   end
 end

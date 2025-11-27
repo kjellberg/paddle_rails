@@ -1,5 +1,7 @@
 module PaddleRails
   class OnboardingController < ApplicationController
+    # include PaddleCheckoutErrorHandler
+
     before_action :redirect_to_dashboard_if_subscribed
 
     def show
@@ -23,19 +25,15 @@ module PaddleRails
         return
       end
 
-      begin
-        checkout_url = PaddleRails::Checkout.url_for(
-          owner: subscription_owner,
-          paddle_price_id: price.paddle_price_id,
-        )
+      checkout_url = PaddleRails::Checkout.url_for(
+        owner: subscription_owner,
+        paddle_price_id: price.paddle_price_id,
+        checkout_url: onboarding_url
+      )
 
-        if checkout_url.present?
-          redirect_to checkout_url, allow_other_host: true
-        else
-          redirect_to onboarding_path, alert: "Failed to create checkout. Please try again."
-        end
-      rescue => e
-        Rails.logger.error("PaddleRails::OnboardingController: Error creating checkout: #{e.message}")
+      if checkout_url.present?
+        redirect_to checkout_url, allow_other_host: true
+      else
         redirect_to onboarding_path, alert: "Failed to create checkout. Please try again."
       end
     end
