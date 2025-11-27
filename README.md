@@ -60,6 +60,7 @@ Or configure in the initializer:
 PaddleRails.configure do |config|
   config.api_key = ENV["PADDLE_API_KEY"]
   config.public_token = ENV["PADDLE_PUBLIC_TOKEN"]
+  config.environment = ENV["PADDLE_ENVIRONMENT"]
   
   # Configure how to authenticate the subscription owner in the customer portal
   config.subscription_owner_authenticator do
@@ -77,6 +78,7 @@ end
 
 - **`api_key`** - Your Paddle API key (defaults to `ENV["PADDLE_API_KEY"]`)
 - **`public_token`** - Your Paddle public token (defaults to `ENV["PADDLE_PUBLIC_TOKEN"]`)
+- **`environment`** - The Paddle environment ("sandbox" or "production") (defaults to `ENV["PADDLE_ENVIRONMENT"]` or "sandbox")
 - **`subscription_owner_authenticator`** - A proc that returns the current subscription owner. Evaluated in controller/view context. Defaults to `current_user || warden.authenticate!(scope: :user)`
 - **`customer_portal_back_path`** - A proc that returns the path for the "Back" link in the customer portal sidebar. Evaluated in controller/view context. Defaults to `main_app.root_path`
 
