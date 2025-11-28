@@ -36,7 +36,7 @@ $ rails generate paddle:rails:install
 This will:
 - Create an initializer at `config/initializers/paddle_rails.rb`
 - Generate a migration for the subscriptions table
-- Mount the engine routes at `/paddle`
+- Mount the customer portal routes at `/billing`
 
 Run the migration:
 
@@ -52,6 +52,7 @@ Set the following environment variables:
 PADDLE_API_KEY=your_api_key_here
 PADDLE_PUBLIC_TOKEN=your_public_token_here
 PADDLE_ENVIRONMENT=production  # or "sandbox"
+PADDLE_WEBHOOK_SECRET=your_webhook_secret_here  # Get this from your Paddle notification destination settings
 ```
 
 Or configure in the initializer:
@@ -61,6 +62,7 @@ PaddleRails.configure do |config|
   config.api_key = ENV["PADDLE_API_KEY"]
   config.public_token = ENV["PADDLE_PUBLIC_TOKEN"]
   config.environment = ENV["PADDLE_ENVIRONMENT"]
+  config.webhook_secret = ENV["PADDLE_WEBHOOK_SECRET"]
   
   # Configure how to authenticate the subscription owner in the customer portal
   config.subscription_owner_authenticator do
@@ -79,6 +81,7 @@ end
 - **`api_key`** - Your Paddle API key (defaults to `ENV["PADDLE_API_KEY"]`)
 - **`public_token`** - Your Paddle public token (defaults to `ENV["PADDLE_PUBLIC_TOKEN"]`)
 - **`environment`** - The Paddle environment ("sandbox" or "production") (defaults to `ENV["PADDLE_ENVIRONMENT"]` or "sandbox")
+- **`webhook_secret`** - Your webhook secret key for verifying webhook signatures (defaults to `ENV["PADDLE_WEBHOOK_SECRET"]`). Get this from your Paddle notification destination settings.
 - **`subscription_owner_authenticator`** - A proc that returns the current subscription owner. Evaluated in controller/view context. Defaults to `current_user || warden.authenticate!(scope: :user)`
 - **`customer_portal_back_path`** - A proc that returns the path for the "Back" link in the customer portal sidebar. Evaluated in controller/view context. Defaults to `main_app.root_path`
 
@@ -133,19 +136,72 @@ The gem automatically injects the owner's GlobalID into the `custom_data` hash, 
 
 Configure your Paddle webhook endpoint:
 
-1. Go to https://vendors.paddle.com/webhooks
-2. Add webhook URL: `https://yourdomain.com/paddle/webhooks`
-3. Select events:
+1. Go to https://vendors.paddle.com/webhooks (or https://sandbox-vendors.paddle.com/webhooks for sandbox)
+2. Create a notification destination with type `url` (webhook)
+3. Add webhook URL: `https://yourdomain.com/paddle_rails/webhooks` (this path is fixed and works even if the engine is not mounted)
+4. Get your webhook secret key from the notification destination settings (the `endpoint_secret_key` field) and set it as `PADDLE_WEBHOOK_SECRET` in your environment
+5. Select events you want to receive:
    - `subscription.created`
    - `subscription.updated`
    - `subscription.canceled`
    - `transaction.completed`
+   - And any other events you need
 
 The gem automatically:
-- Verifies webhook signatures
-- Resolves the owner from passthrough
-- Creates/updates subscription records
-- Updates status and billing periods
+- **Verifies webhook signatures** - All incoming webhooks are verified using HMAC-SHA256 signature verification
+- **Stores events** - All webhooks are stored in the `paddle_rails_webhook_events` table for replayability and debugging
+- **Processes asynchronously** - Webhooks are processed in background jobs using ActiveJob (compatible with Sidekiq, Solid Queue, etc.)
+- **Emits notifications** - Events are broadcast via `ActiveSupport::Notifications` for your application to listen to
+
+#### Listening to Webhook Events
+
+Subscribe to webhook events using `ActiveSupport::Notifications`:
+
+```ruby
+# In an initializer or application code
+ActiveSupport::Notifications.subscribe("paddle_rails.subscription.created") do |name, start, finish, id, payload|
+  webhook_event = payload[:webhook_event]
+  event_type = payload[:event_type]
+  raw_payload = payload[:raw_payload]
+  
+  # Handle subscription created event
+  # The raw_payload contains the full webhook data from Paddle
+end
+
+ActiveSupport::Notifications.subscribe("paddle_rails.subscription.updated") do |name, start, finish, id, payload|
+  # Handle subscription updated event
+end
+
+# Listen to all Paddle webhook events
+ActiveSupport::Notifications.subscribe(/^paddle_rails\./) do |name, start, finish, id, payload|
+  # Handle any Paddle webhook event
+end
+```
+
+The notification name format is: `paddle_rails.{event_type}` (e.g., `paddle_rails.subscription.created`)
+
+#### Webhook Event Model
+
+All webhooks are stored in `PaddleRails::WebhookEvent` with the following statuses:
+- `pending` - Event received but not yet processed
+- `processing` - Currently being processed
+- `processed` - Successfully processed
+- `failed` - Processing failed (errors stored in `processing_errors`)
+
+You can query webhook events:
+
+```ruby
+# Find a specific event
+event = PaddleRails::WebhookEvent.find_by(external_id: "evt_123")
+
+# Query by status
+PaddleRails::WebhookEvent.pending
+PaddleRails::WebhookEvent.processed
+PaddleRails::WebhookEvent.failed
+
+# Access the raw payload
+event.payload  # => Full JSON payload from Paddle
+```
 
 ### 4. Work with Subscriptions
 
@@ -218,10 +274,12 @@ The catalog is kept in sync with Paddle:
    - Paddle returns a checkout URL
 
 2. **Webhook Processing**: When Paddle sends a webhook:
-   - The gem verifies the signature
-   - Extracts the custom_data from the event data
-   - Resolves the owner: `GlobalID::Locator.locate(custom_data["owner_gid"])`
-   - Creates/updates the subscription record
+   - The gem verifies the HMAC-SHA256 signature using the webhook secret
+   - Stores the raw webhook event in the database for replayability
+   - Enqueues a background job to process the event asynchronously
+   - Emits an `ActiveSupport::Notification` with the event type (e.g., `paddle_rails.subscription.created`)
+   - Your application can subscribe to these notifications to handle events
+   - Future: The gem will automatically extract custom_data, resolve the owner, and create/update subscription records
 
 3. **No Customer Dependency**: The gem never looks up Paddle Customers by email or customer_id. Identity is always resolved through the custom_data hash.
 

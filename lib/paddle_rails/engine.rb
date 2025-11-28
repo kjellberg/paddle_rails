@@ -21,6 +21,13 @@ module PaddleRails
       end
     end
 
+    # Add webhook route to main application
+    initializer "paddle_rails.routes" do |app|
+      app.routes.prepend do
+        post "/paddle_rails/webhooks", to: "paddle_rails/webhooks#create", as: :paddle_rails_webhooks
+      end
+    end
+
     # Prepare helpers for inclusion in controllers and views.
     #
     # Makes {PaddleRails::SubscriptionOwner} and {PaddleRails::SubscriptionOwnerHelper}

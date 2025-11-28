@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_11_24_224102) do
+ActiveRecord::Schema[8.1].define(version: 2025_11_27_223103) do
   create_table "paddle_rails_subscription_plans", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.json "custom_data"
@@ -46,6 +46,20 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_24_224102) do
     t.datetime "updated_at", null: false
     t.index ["paddle_price_id"], name: "index_paddle_rails_subscription_prices_on_paddle_price_id", unique: true
     t.index ["subscription_plan_id"], name: "index_paddle_rails_subscription_prices_on_subscription_plan_id"
+  end
+
+  create_table "paddle_rails_webhook_events", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "event_type", null: false
+    t.string "external_id", null: false
+    t.json "payload", null: false
+    t.datetime "processed_at"
+    t.text "processing_errors"
+    t.string "status", default: "pending", null: false
+    t.datetime "updated_at", null: false
+    t.index ["event_type"], name: "index_paddle_rails_webhook_events_on_event_type"
+    t.index ["external_id"], name: "index_paddle_rails_webhook_events_on_external_id", unique: true
+    t.index ["status"], name: "index_paddle_rails_webhook_events_on_status"
   end
 
   create_table "users", force: :cascade do |t|
