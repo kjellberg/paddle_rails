@@ -1,16 +1,16 @@
 # frozen_string_literal: true
 
 module PaddleRails
-  # Presenter for subscription products on the onboarding page.
+  # Presenter for products on the onboarding page.
   #
-  # Wraps a {SubscriptionProduct} and its active {SubscriptionPrice} records
+  # Wraps a {Product} and its active {Price} records
   # and exposes formatted data for the onboarding view so the template
   # can stay mostly declarative and free from business logic.
   #
   # @example Building presenters in the controller
-  #   products = SubscriptionProduct.active.includes(:prices)
+  #   products = Product.active.includes(:prices)
   #   @products = products.each_with_index.map do |product, index|
-  #     PaddleRails::SubscriptionProductPresenter.new(product, index: index)
+  #     PaddleRails::ProductPresenter.new(product, index: index)
   #   end
   #
   # @example Using presenter methods in the view
@@ -18,12 +18,12 @@ module PaddleRails
   #     <%= product.name %>
   #     <%= product.primary_label %>  <!-- e.g. "29 EUR / month" -->
   #   <% end %>
-  class SubscriptionProductPresenter
+  class ProductPresenter
     attr_reader :product, :index
 
     # Initialize a new presenter.
     #
-    # @param product [PaddleRails::SubscriptionProduct] the product being presented
+    # @param product [PaddleRails::Product] the product being presented
     # @param index [Integer] zero-based index of the product in the list
     # @param default_currency [String] fallback currency code, defaults to "EUR"
     def initialize(product, index: 0, default_currency: "EUR")
@@ -50,7 +50,7 @@ module PaddleRails
 
     # All active prices for the product, ordered by unit price.
     #
-    # @return [ActiveRecord::Relation<PaddleRails::SubscriptionPrice>]
+    # @return [ActiveRecord::Relation<PaddleRails::Price>]
     def prices
       @prices ||= product.prices.active.order(:unit_price)
     end
@@ -71,7 +71,7 @@ module PaddleRails
 
     # The primary price used for the default selection.
     #
-    # @return [PaddleRails::SubscriptionPrice, nil]
+    # @return [PaddleRails::Price, nil]
     def primary_price
       prices.first
     end
@@ -130,7 +130,7 @@ module PaddleRails
 
     # Convert a price's unit_price (stored in minor units) to an integer amount.
     #
-    # @param price [PaddleRails::SubscriptionPrice, nil]
+    # @param price [PaddleRails::Price, nil]
     # @return [Integer]
     def amount_for(price)
       return 0 unless price&.unit_price
@@ -140,7 +140,7 @@ module PaddleRails
 
     # Resolve a price's currency or fall back to the default.
     #
-    # @param price [PaddleRails::SubscriptionPrice, nil]
+    # @param price [PaddleRails::Price, nil]
     # @return [String]
     def currency_for(price)
       (price&.currency || @default_currency).upcase
@@ -148,7 +148,7 @@ module PaddleRails
 
     # Build a human-readable billing interval from Paddle data.
     #
-    # @param price [PaddleRails::SubscriptionPrice, nil]
+    # @param price [PaddleRails::Price, nil]
     # @return [String]
     def billing_for(price)
       return "one-time" unless price&.billing_interval.present?
@@ -168,7 +168,7 @@ module PaddleRails
 
     # Build a full label for a price.
     #
-    # @param price [PaddleRails::SubscriptionPrice, nil]
+    # @param price [PaddleRails::Price, nil]
     # @return [String]
     def label_for(price)
       "#{amount_for(price)} #{currency_for(price)} / #{billing_for(price)}"

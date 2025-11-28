@@ -1,13 +1,15 @@
+# frozen_string_literal: true
+
 module PaddleRails
-  class SubscriptionPrice < ApplicationRecord
-    self.table_name = "paddle_rails_subscription_prices"
+  class Price < ApplicationRecord
+    self.table_name = "paddle_rails_prices"
     self.inheritance_column = nil # Disable STI since we use 'type' for Paddle price type
 
-    belongs_to :subscription_product, class_name: "PaddleRails::SubscriptionProduct"
+    belongs_to :product, class_name: "PaddleRails::Product"
 
     validates :paddle_price_id, presence: true, uniqueness: true
 
-    scope :active, -> { joins(:subscription_product).where(paddle_rails_subscription_products: { status: "active" }).where(status: "active") }
+    scope :active, -> { joins(:product).where(paddle_rails_products: { status: "active" }).where(status: "active") }
     scope :for_currency, ->(currency) { where(currency: currency) }
 
     # Whether this price is active.
@@ -20,3 +22,4 @@ module PaddleRails
     end
   end
 end
+

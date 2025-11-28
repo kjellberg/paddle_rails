@@ -122,11 +122,11 @@ module PaddleRails
 
         # Find or initialize the subscription item by subscription and price
         subscription_item = subscription.items.find_or_initialize_by(
-          subscription_price_id: price_record.id
+          price_id: price_record.id
         )
 
         # Set product reference (through price)
-        subscription_item.subscription_product = price_record.subscription_product
+        subscription_item.product = price_record.product
 
         # Update attributes
         subscription_item.quantity = item_data["quantity"] || 1
@@ -137,15 +137,15 @@ module PaddleRails
       end
 
       # Delete items that are no longer in the payload (full sync)
-      subscription.items.where.not(subscription_price_id: seen_price_ids).destroy_all
+      subscription.items.where.not(price_id: seen_price_ids).destroy_all
     end
 
-    # Find a SubscriptionPrice by its Paddle price ID.
+    # Find a Price by its Paddle price ID.
     #
     # @param paddle_price_id [String] The Paddle price ID
-    # @return [PaddleRails::SubscriptionPrice, nil]
+    # @return [PaddleRails::Price, nil]
     def find_price_by_paddle_id(paddle_price_id)
-      SubscriptionPrice.find_by(paddle_price_id: paddle_price_id)
+      Price.find_by(paddle_price_id: paddle_price_id)
     end
   end
 end

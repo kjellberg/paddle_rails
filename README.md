@@ -248,12 +248,12 @@ end
 
 ```ruby
 # Look up products and prices by Paddle IDs
-product = PaddleRails::SubscriptionProduct.find_by(paddle_product_id: "pro_123")
-price = PaddleRails::SubscriptionPrice.find_by(paddle_price_id: "pri_123")
+product = PaddleRails::Product.find_by(paddle_product_id: "pro_123")
+price = PaddleRails::Price.find_by(paddle_price_id: "pri_123")
 
 # Navigate relationships
-product.prices              # => all prices for the product
-price.subscription_product  # => owning product
+product.prices  # => all prices for the product
+price.product   # => owning product
 
 # Use in your own code (example)
 checkout = user.create_paddle_checkout(paddle_price_id: price.paddle_price_id)
@@ -287,8 +287,8 @@ The catalog is kept in sync with Paddle:
 
 Paddle products and prices are mirrored into two models:
 
-- `PaddleRails::SubscriptionProduct` – mirrors a Paddle Product (e.g. "Pro", "Team").
-- `PaddleRails::SubscriptionPrice` – mirrors a Paddle Price (e.g. monthly EUR price for "Pro").
+- `PaddleRails::Product` – mirrors a Paddle Product (e.g. "Pro", "Team").
+- `PaddleRails::Price` – mirrors a Paddle Price (e.g. monthly EUR price for "Pro").
 
 The gem fetches data from the Paddle API and upserts local records so your Rails app always has an up-to-date view of the catalog without calling Paddle on every request.
 
@@ -308,7 +308,7 @@ The `paddle_rails_subscriptions` table includes:
 - `trial_ends_at` - When trial ends (if applicable)
 - `raw_payload` - Full JSON payload from Paddle for reference
 
-The `paddle_rails_subscription_products` table (Paddle Products) will include fields like:
+The `paddle_rails_products` table (Paddle Products) will include fields like:
 
 - `paddle_product_id` - Paddle's product ID (unique)
 - `name` - Human-readable name
@@ -316,9 +316,9 @@ The `paddle_rails_subscription_products` table (Paddle Products) will include fi
 - `status` - Whether the product is active/archived
 - Timestamps and any additional Paddle metadata you need
 
-The `paddle_rails_subscription_prices` table (Paddle Prices) will include fields like:
+The `paddle_rails_prices` table (Paddle Prices) will include fields like:
 
-- `subscription_product_id` - Foreign key to `SubscriptionProduct`
+- `product_id` - Foreign key to `Product`
 - `paddle_price_id` - Paddle's price ID (unique)
 - `currency` - Currency code (e.g. "USD")
 - `unit_price` - Price amount (integer, typically in minor units)
@@ -329,8 +329,8 @@ The `paddle_rails_subscription_prices` table (Paddle Prices) will include fields
 The `paddle_rails_subscription_items` table links subscriptions to their prices and products:
 
 - `subscription_id` - Foreign key to `Subscription`
-- `subscription_price_id` - Foreign key to `SubscriptionPrice`
-- `subscription_product_id` - Foreign key to `SubscriptionProduct`
+- `price_id` - Foreign key to `Price`
+- `product_id` - Foreign key to `Product`
 - `quantity` - Quantity of this item
 - `status` - Item status
 - `recurring` - Whether this item is recurring
@@ -364,33 +364,33 @@ Scopes:
 
 - `active`, `trialing`, `past_due`, `canceled`, `paused`
 
-### PaddleRails::SubscriptionProduct
+### PaddleRails::Product
 
 Represents a Paddle Product.
 
-- `has_many :prices, class_name: "PaddleRails::SubscriptionPrice"`
+- `has_many :prices, class_name: "PaddleRails::Price"`
 - `find_by(paddle_product_id:)` - Look up by Paddle product ID
 - Suggested scopes: `active`, `archived`
 
 Example usage:
 
 ```ruby
-product = PaddleRails::SubscriptionProduct.active.find_by!(paddle_product_id: "pro_123")
+product = PaddleRails::Product.active.find_by!(paddle_product_id: "pro_123")
 product.prices # => available prices for this product
 ```
 
-### PaddleRails::SubscriptionPrice
+### PaddleRails::Price
 
-Represents a Paddle Price belonging to a `SubscriptionProduct`.
+Represents a Paddle Price belonging to a `Product`.
 
-- `belongs_to :subscription_product`
+- `belongs_to :product`
 - `find_by(paddle_price_id:)` - Look up by Paddle price ID
 - Suggested scopes: `active`, `for_currency("USD")`, `recurring`, `one_time`
 
 Example usage:
 
 ```ruby
-price = PaddleRails::SubscriptionPrice.for_currency("USD").recurring.first
+price = PaddleRails::Price.for_currency("USD").recurring.first
 user.create_paddle_checkout(paddle_price_id: price.paddle_price_id)
 ```
 

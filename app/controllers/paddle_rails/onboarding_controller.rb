@@ -5,7 +5,7 @@ module PaddleRails
     before_action :redirect_to_dashboard_if_subscribed
 
     def show
-      products = SubscriptionProduct.active.includes(:prices)
+      products = Product.active.includes(:prices)
 
       # Order products by their lowest active price (cheapest first)
       sorted_products = products.sort_by do |product|
@@ -13,12 +13,12 @@ module PaddleRails
       end
 
       @products = sorted_products.each_with_index.map do |product, index|
-        SubscriptionProductPresenter.new(product, index: index)
+        ProductPresenter.new(product, index: index)
       end
     end
 
     def create_checkout
-      price = SubscriptionPrice.find_by(paddle_price_id: params[:paddle_price_id])
+      price = Price.find_by(paddle_price_id: params[:paddle_price_id])
       
       unless price&.active?
         redirect_to onboarding_path, alert: "Invalid price selected."

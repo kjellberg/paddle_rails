@@ -13,8 +13,8 @@ module PaddleRails
 
     belongs_to :owner, polymorphic: true
     has_many :items, class_name: "PaddleRails::SubscriptionItem", dependent: :destroy
-    has_many :prices, through: :items, source: :subscription_price
-    has_many :products, through: :prices, source: :subscription_product
+    has_many :prices, through: :items, source: :price
+    has_many :products, through: :prices, source: :product
 
     validates :paddle_subscription_id, presence: true, uniqueness: true
     validates :status, presence: true
@@ -63,7 +63,7 @@ module PaddleRails
 
     # Returns the primary product for this subscription.
     # Uses the first recurring item's product, or falls back to the first item's product.
-    # @return [PaddleRails::SubscriptionProduct, nil]
+    # @return [PaddleRails::Product, nil]
     def product
       # Try to get product from first recurring item
       first_recurring_item = items.find_by(recurring: true)

@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
 module PaddleRails
-  class SubscriptionProduct < ApplicationRecord
-    self.table_name = "paddle_rails_subscription_products"
+  class Product < ApplicationRecord
+    self.table_name = "paddle_rails_products"
     self.inheritance_column = nil # Disable STI since we use 'type' for Paddle product type
 
-    has_many :prices, class_name: "PaddleRails::SubscriptionPrice", foreign_key: "subscription_product_id", dependent: :destroy
+    has_many :prices, class_name: "PaddleRails::Price", foreign_key: "product_id", dependent: :destroy
 
     validates :paddle_product_id, presence: true, uniqueness: true
 

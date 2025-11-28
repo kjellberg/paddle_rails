@@ -10,24 +10,8 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_11_28_141817) do
-  create_table "paddle_rails_subscription_items", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.string "paddle_item_id"
-    t.integer "quantity", default: 1
-    t.boolean "recurring", default: false
-    t.string "status"
-    t.integer "subscription_id", null: false
-    t.integer "subscription_price_id", null: false
-    t.integer "subscription_product_id"
-    t.datetime "updated_at", null: false
-    t.index ["subscription_id", "subscription_price_id"], name: "index_subscription_items_on_subscription_and_price", unique: true
-    t.index ["subscription_id"], name: "index_paddle_rails_subscription_items_on_subscription_id"
-    t.index ["subscription_price_id"], name: "index_paddle_rails_subscription_items_on_subscription_price_id"
-    t.index ["subscription_product_id"], name: "idx_on_subscription_product_id_29445b7984"
-  end
-
-  create_table "paddle_rails_subscription_prices", force: :cascade do |t|
+ActiveRecord::Schema[8.1].define(version: 2025_11_28_202363) do
+  create_table "paddle_rails_prices", force: :cascade do |t|
     t.string "billing_interval"
     t.integer "billing_interval_count"
     t.datetime "created_at", null: false
@@ -36,21 +20,21 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_28_141817) do
     t.text "description"
     t.string "name"
     t.string "paddle_price_id", null: false
+    t.integer "product_id", null: false
     t.integer "quantity_maximum"
     t.integer "quantity_minimum"
     t.string "status"
-    t.integer "subscription_product_id", null: false
     t.string "tax_mode"
     t.integer "trial_days"
     t.json "trial_period"
     t.string "type"
     t.integer "unit_price"
     t.datetime "updated_at", null: false
-    t.index ["paddle_price_id"], name: "index_paddle_rails_subscription_prices_on_paddle_price_id", unique: true
-    t.index ["subscription_product_id"], name: "idx_on_subscription_product_id_cc8880cd7e"
+    t.index ["paddle_price_id"], name: "index_paddle_rails_prices_on_paddle_price_id", unique: true
+    t.index ["product_id"], name: "index_paddle_rails_prices_on_product_id"
   end
 
-  create_table "paddle_rails_subscription_products", force: :cascade do |t|
+  create_table "paddle_rails_products", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.json "custom_data"
     t.text "description"
@@ -61,7 +45,22 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_28_141817) do
     t.string "tax_category"
     t.string "type"
     t.datetime "updated_at", null: false
-    t.index ["paddle_product_id"], name: "index_paddle_rails_subscription_products_on_paddle_product_id", unique: true
+    t.index ["paddle_product_id"], name: "index_paddle_rails_products_on_paddle_product_id", unique: true
+  end
+
+  create_table "paddle_rails_subscription_items", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.integer "price_id", null: false
+    t.integer "product_id"
+    t.integer "quantity", default: 1
+    t.boolean "recurring", default: false
+    t.string "status"
+    t.integer "subscription_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["price_id"], name: "index_paddle_rails_subscription_items_on_price_id"
+    t.index ["product_id"], name: "index_paddle_rails_subscription_items_on_product_id"
+    t.index ["subscription_id", "price_id"], name: "index_subscription_items_on_subscription_and_price", unique: true
+    t.index ["subscription_id"], name: "index_paddle_rails_subscription_items_on_subscription_id"
   end
 
   create_table "paddle_rails_subscriptions", force: :cascade do |t|
@@ -99,9 +98,12 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_28_141817) do
     t.datetime "updated_at", null: false
   end
 
-  add_foreign_key "paddle_rails_subscription_items", "paddle_rails_subscription_prices", column: "subscription_price_id"
-  add_foreign_key "paddle_rails_subscription_items", "paddle_rails_subscription_products", column: "subscription_product_id"
+  add_foreign_key "paddle_rails_prices", "paddle_rails_products", column: "product_id"
+  add_foreign_key "paddle_rails_prices", "paddle_rails_products", column: "product_id"
+  add_foreign_key "paddle_rails_prices", "paddle_rails_products", column: "product_id"
+  add_foreign_key "paddle_rails_subscription_items", "paddle_rails_prices", column: "price_id"
+  add_foreign_key "paddle_rails_subscription_items", "paddle_rails_prices", column: "price_id"
+  add_foreign_key "paddle_rails_subscription_items", "paddle_rails_products", column: "product_id"
+  add_foreign_key "paddle_rails_subscription_items", "paddle_rails_products", column: "product_id"
   add_foreign_key "paddle_rails_subscription_items", "paddle_rails_subscriptions", column: "subscription_id"
-  add_foreign_key "paddle_rails_subscription_prices", "paddle_rails_subscription_products", column: "subscription_product_id"
-  add_foreign_key "paddle_rails_subscription_prices", "paddle_rails_subscription_products", column: "subscription_product_id"
 end
