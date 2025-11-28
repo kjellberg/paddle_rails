@@ -26,8 +26,8 @@ module PaddleRails
       end
 
       redirect_url = PaddleRails::Checkout.url_for(
-        owner: subscription_owner,
-        paddle_price_id: price.paddle_price_id,
+          owner: subscription_owner,
+          paddle_price_id: price.paddle_price_id,
         checkout_url: checkout_url
       )
 

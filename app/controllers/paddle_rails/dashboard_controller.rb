@@ -3,6 +3,7 @@ module PaddleRails
     before_action :redirect_to_onboarding_if_no_subscription
 
     def show
+      @subscription = SubscriptionPresenter.new(subscription_owner.subscription)
     end
 
     private

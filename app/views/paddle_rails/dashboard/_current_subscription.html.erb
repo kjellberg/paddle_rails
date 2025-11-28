@@ -5,29 +5,37 @@
     <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4 gap-4">
       <div class="flex items-start gap-4">
         <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center flex-shrink-0">
-          <span class="text-white font-light text-lg">CW</span>
+          <span class="text-white font-light text-lg"><%= @subscription.product_initial %></span>
         </div>
         <div>
-          <h3 class="text-lg font-normal text-gray-900 mb-1">CreatorWave Pro</h3>
-          <p class="text-gray-600 text-sm">$29.00 billed monthly</p>
+          <h3 class="text-lg font-normal text-gray-900 mb-1"><%= @subscription.product_name %></h3>
+          <% if @subscription.has_price? %>
+            <p class="text-gray-600 text-sm">
+              <%= number_to_currency(@subscription.amount, unit: @subscription.currency_symbol) %> 
+              <%= @subscription.currency %> 
+              billed per <%= @subscription.interval_label %>
+            </p>
+          <% else %>
+            <p class="text-gray-600 text-sm"><%= @subscription.price_display_text %></p>
+          <% end %>
         </div>
       </div>
       <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 self-start sm:self-auto">
         <span class="w-1.5 h-1.5 rounded-full bg-green-600"></span>
-        Active
+        <%= @subscription.status_label %>
       </span>
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-5 border-t border-gray-100 mt-5">
       <div>
-        <p class="text-xs text-gray-500 mb-1">Next billing date</p>
-        <p class="text-sm font-light text-gray-900">May 14, 2026</p>
+        <p class="text-xs text-gray-500 mb-1"><%= @subscription.billing_date_title %></p>
+        <p class="text-sm font-light text-gray-900"><%= @subscription.billing_date %></p>
       </div>
       <div>
         <p class="text-xs text-gray-500 mb-1">Amount</p>
-        <p class="text-sm font-light text-gray-900">$29.00</p>
+        <p class="text-sm font-light text-gray-900">
+          <%= @subscription.has_price? ? number_to_currency(@subscription.amount, unit: @subscription.currency_symbol) : "N/A" %>
+        </p>
       </div>
     </div>
   </div>
 </section>
-
-
