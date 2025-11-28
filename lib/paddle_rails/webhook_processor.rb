@@ -60,22 +60,27 @@ module PaddleRails
     end
 
     # Handler for subscription.created events.
-    #
-    # This is a placeholder - actual subscription creation logic will be
-    # implemented in a future update.
     def handle_subscription_created
-      # TODO: Implement subscription creation logic
-      # Extract owner from custom_data, create/update subscription record, etc.
+      subscription_data = @payload["data"]
+      return unless subscription_data
+
+      SubscriptionSync.sync_from_payload(subscription_data)
     end
 
     # Handler for subscription.updated events.
     def handle_subscription_updated
-      # TODO: Implement subscription update logic
+      subscription_data = @payload["data"]
+      return unless subscription_data
+
+      SubscriptionSync.sync_from_payload(subscription_data)
     end
 
     # Handler for subscription.canceled events.
     def handle_subscription_canceled
-      # TODO: Implement subscription cancellation logic
+      subscription_data = @payload["data"]
+      return unless subscription_data
+
+      SubscriptionSync.sync_from_payload(subscription_data)
     end
 
     # Handler for transaction.completed events.
