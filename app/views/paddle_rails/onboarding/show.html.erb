@@ -8,26 +8,26 @@
       <p class="text-gray-600 text-lg">Select the subscription plan that works best for you</p>
     </div>
 
-    <!-- Plans Grid -->
-    <% if @plans.any? %>
+    <!-- Products Grid -->
+    <% if @products.any? %>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
-        <% @plans.each do |plan| %>
-          <% next unless plan.any_prices? %>
+        <% @products.each do |product| %>
+          <% next unless product.any_prices? %>
 
           <div
             class="bg-white border border-gray-200 rounded-2xl p-6 md:p-7 flex flex-col justify-between"
             data-plan-card="true"
           >
             <div class="flex flex-col gap-4">
-              <!-- Plan header -->
+              <!-- Product header -->
               <div class="flex items-start justify-between">
                 <div>
-                  <h3 class="text-lg font-normal text-gray-900 mb-1"><%= plan.name %></h3>
+                  <h3 class="text-lg font-normal text-gray-900 mb-1"><%= product.name %></h3>
                   <p class="text-sm text-gray-500">
-                    <span class="font-light text-2xl text-gray-900"><%= plan.primary_amount %></span>
-                    <span class="text-base text-gray-900 ml-0.5"><%= plan.primary_currency %></span>
+                    <span class="font-light text-2xl text-gray-900"><%= product.primary_amount %></span>
+                    <span class="text-base text-gray-900 ml-0.5"><%= product.primary_currency %></span>
                     <span class="text-sm text-gray-600 mx-1">/</span>
-                    <span class="text-sm text-gray-600"><%= plan.primary_billing %></span>
+                    <span class="text-sm text-gray-600"><%= product.primary_billing %></span>
                   </p>
                 </div>
               </div>
@@ -40,14 +40,14 @@
               </ul>
 
               <!-- Billing options (monthly / yearly etc.) -->
-              <% if plan.multiple_prices? %>
+              <% if product.multiple_prices? %>
                 <div class="mt-4">
                   <label class="block text-xs font-medium text-gray-500 mb-1">Billing</label>
                   <select
                     class="block w-full rounded-lg border-gray-300 text-sm text-gray-900 focus:border-purple-500 focus:ring-purple-500"
                     data-price-select="true"
                   >
-                    <% plan.price_options.each_with_index do |(price_id, label), idx| %>
+                    <% product.price_options.each_with_index do |(price_id, label), idx| %>
                       <option
                         value="<%= price_id %>"
                         data-price-label="<%= label %>"
@@ -64,8 +64,8 @@
             <!-- Action button -->
             <div class="mt-6">
               <%= form_with url: onboarding_checkout_path, method: :post, local: true do |f| %>
-                <%= f.hidden_field :paddle_price_id, value: plan.primary_price_id, data: { price_input: true } %>
-                <%= f.submit plan.primary_label, class: "w-full px-4 py-2.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-medium rounded-lg hover:from-purple-600 hover:to-pink-600 transition-colors shadow-sm", data: { price_button: true } %>
+                <%= f.hidden_field :paddle_price_id, value: product.primary_price_id, data: { price_input: true } %>
+                <%= f.submit product.primary_label, class: "w-full px-4 py-2.5 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm font-medium rounded-lg hover:from-purple-600 hover:to-pink-600 transition-colors shadow-sm", data: { price_button: true } %>
               <% end %>
             </div>
           </div>

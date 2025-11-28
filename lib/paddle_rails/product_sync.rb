@@ -4,12 +4,12 @@ module PaddleRails
   # Service class for syncing Paddle products and prices to local database.
   #
   # Fetches all products and prices from the Paddle API and creates or updates
-  # corresponding {SubscriptionPlan} and {SubscriptionPrice} records locally.
+  # corresponding {SubscriptionProduct} and {SubscriptionPrice} records locally.
   #
   # @example Sync all products and prices
   #   PaddleRails::ProductSync.call
   #
-  # @see SubscriptionPlan
+  # @see SubscriptionProduct
   # @see SubscriptionPrice
   class ProductSync
     # Convenience method to create a new instance and call it.
@@ -34,7 +34,7 @@ module PaddleRails
     # Sync all products from Paddle API.
     #
     # Fetches products in pages of 50 and creates or updates local
-    # {SubscriptionPlan} records.
+    # {SubscriptionProduct} records.
     #
     # @return [void]
     # @raise [StandardError] If product sync fails
@@ -61,9 +61,9 @@ module PaddleRails
     # @return [void]
     # @raise [StandardError] If product save fails
     def sync_product(product_data)
-      plan = SubscriptionPlan.find_or_initialize_by(paddle_product_id: product_data.id)
+      product = SubscriptionProduct.find_or_initialize_by(paddle_product_id: product_data.id)
       
-      plan.assign_attributes(
+      product.assign_attributes(
         name: product_data.name,
         description: product_data.description,
         status: product_data.status,
@@ -73,7 +73,7 @@ module PaddleRails
         custom_data: product_data.custom_data
       )
       
-      plan.save!
+      product.save!
     rescue StandardError => e
       Rails.logger.error("PaddleRails::ProductSync: Failed to sync product #{product_data.id}: #{e.message}")
       raise
@@ -109,9 +109,9 @@ module PaddleRails
     # @return [void]
     # @raise [StandardError] If price save fails
     def sync_price(price_data)
-      # Find the subscription plan by product_id
-      plan = SubscriptionPlan.find_by(paddle_product_id: price_data.product_id)
-      unless plan
+      # Find the subscription product by product_id
+      product = SubscriptionProduct.find_by(paddle_product_id: price_data.product_id)
+      unless product
         Rails.logger.warn("PaddleRails::ProductSync: Skipping price #{price_data.id} - product #{price_data.product_id} not found locally")
         return
       end
@@ -135,7 +135,7 @@ module PaddleRails
       quantity_maximum = price_data.quantity&.maximum
       
       price.assign_attributes(
-        subscription_plan: plan,
+        subscription_product: product,
         name: price_data.name,
         description: price_data.description,
         status: price_data.status,

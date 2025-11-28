@@ -10,9 +10,12 @@ module PaddleRails
 
     belongs_to :subscription, class_name: "PaddleRails::Subscription"
     belongs_to :subscription_price, class_name: "PaddleRails::SubscriptionPrice"
+    belongs_to :subscription_product, class_name: "PaddleRails::SubscriptionProduct"
     alias_method :price, :subscription_price
 
-    delegate :plan, to: :subscription_price
+    delegate :product, to: :subscription_product
+    # Alias for backward compatibility
+    alias_method :plan, :product
 
     validates :subscription_id, presence: true
     validates :subscription_price_id, presence: true

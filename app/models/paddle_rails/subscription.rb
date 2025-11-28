@@ -14,7 +14,7 @@ module PaddleRails
     belongs_to :owner, polymorphic: true
     has_many :items, class_name: "PaddleRails::SubscriptionItem", dependent: :destroy
     has_many :prices, through: :items, source: :subscription_price
-    has_many :plans, through: :prices, source: :subscription_plan
+    has_many :products, through: :prices, source: :subscription_product
 
     validates :paddle_subscription_id, presence: true, uniqueness: true
     validates :status, presence: true
@@ -61,17 +61,20 @@ module PaddleRails
       current_period_end_at.present? && current_period_end_at > Time.current
     end
 
-    # Returns the primary plan for this subscription.
-    # Uses the first recurring item's plan, or falls back to the first item's plan.
-    # @return [PaddleRails::SubscriptionPlan, nil]
-    def plan
-      # Try to get plan from first recurring item
+    # Returns the primary product for this subscription.
+    # Uses the first recurring item's product, or falls back to the first item's product.
+    # @return [PaddleRails::SubscriptionProduct, nil]
+    def product
+      # Try to get product from first recurring item
       first_recurring_item = items.find_by(recurring: true)
-      return first_recurring_item&.plan if first_recurring_item
+      return first_recurring_item&.product if first_recurring_item
 
       # Fallback to first item
-      items.first&.plan
+      items.first&.product
     end
+
+    # Alias for backward compatibility
+    alias_method :plan, :product
   end
 end
 

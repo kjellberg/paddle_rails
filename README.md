@@ -247,13 +247,13 @@ end
 `paddle_rails` will keep a local mirror of your Paddle subscription products and prices so you can safely reference them in Rails without hard-coding IDs.
 
 ```ruby
-# Look up plans and prices by Paddle IDs
-plan  = PaddleRails::SubscriptionPlan.find_by(paddle_product_id: "pro_123")
+# Look up products and prices by Paddle IDs
+product = PaddleRails::SubscriptionProduct.find_by(paddle_product_id: "pro_123")
 price = PaddleRails::SubscriptionPrice.find_by(paddle_price_id: "pri_123")
 
 # Navigate relationships
-plan.prices              # => all prices for the plan
-price.subscription_plan  # => owning plan
+product.prices              # => all prices for the product
+price.subscription_product  # => owning product
 
 # Use in your own code (example)
 checkout = user.create_paddle_checkout(paddle_price_id: price.paddle_price_id)
@@ -287,7 +287,7 @@ The catalog is kept in sync with Paddle:
 
 Paddle products and prices are mirrored into two models:
 
-- `PaddleRails::SubscriptionPlan` – mirrors a Paddle Product (e.g. "Pro", "Team").
+- `PaddleRails::SubscriptionProduct` – mirrors a Paddle Product (e.g. "Pro", "Team").
 - `PaddleRails::SubscriptionPrice` – mirrors a Paddle Price (e.g. monthly EUR price for "Pro").
 
 The gem fetches data from the Paddle API and upserts local records so your Rails app always has an up-to-date view of the catalog without calling Paddle on every request.
@@ -302,31 +302,38 @@ The gem fetches data from the Paddle API and upserts local records so your Rails
 The `paddle_rails_subscriptions` table includes:
 
 - `owner_type` / `owner_id` - Polymorphic association to any model
-- `subscription_price_id` - Foreign key to `PaddleRails::SubscriptionPrice`
 - `paddle_subscription_id` - Paddle's subscription ID (unique)
-- `paddle_price_id` - Cached Paddle Price ID for convenience
 - `status` - Current status (active, trialing, canceled, etc.)
 - `current_period_end_at` - When current billing period ends
 - `trial_ends_at` - When trial ends (if applicable)
 - `raw_payload` - Full JSON payload from Paddle for reference
 
-The `paddle_rails_subscription_plans` table (Paddle Products) will include fields like:
+The `paddle_rails_subscription_products` table (Paddle Products) will include fields like:
 
 - `paddle_product_id` - Paddle's product ID (unique)
 - `name` - Human-readable name
 - `description` - Optional description
-- `status` - Whether the plan is active/archived
+- `status` - Whether the product is active/archived
 - Timestamps and any additional Paddle metadata you need
 
 The `paddle_rails_subscription_prices` table (Paddle Prices) will include fields like:
 
-- `subscription_plan_id` - Foreign key to `SubscriptionPlan`
+- `subscription_product_id` - Foreign key to `SubscriptionProduct`
 - `paddle_price_id` - Paddle's price ID (unique)
 - `currency` - Currency code (e.g. "USD")
 - `unit_price` - Price amount (integer, typically in minor units)
 - `billing_interval` / `billing_interval_count` - e.g. "month", 1
 - `trial_days` - Optional trial length
 - Timestamps and any additional Paddle metadata you need
+
+The `paddle_rails_subscription_items` table links subscriptions to their prices and products:
+
+- `subscription_id` - Foreign key to `Subscription`
+- `subscription_price_id` - Foreign key to `SubscriptionPrice`
+- `subscription_product_id` - Foreign key to `SubscriptionProduct`
+- `quantity` - Quantity of this item
+- `status` - Item status
+- `recurring` - Whether this item is recurring
 
 ## API Reference
 
@@ -347,17 +354,17 @@ Model methods:
 - `in_trial?` - Returns true if currently in trial period
 - `current_period_active?` - Returns true if billing period is active
 - `owner` - Returns the polymorphic owner (User, Team, etc.)
-- `subscription_price` - Returns the associated `PaddleRails::SubscriptionPrice`
+- `items` - Returns all subscription items (has_many)
+- `prices` - Returns all prices through items (has_many through: :items)
+- `products` - Returns all products through items (has_many through: :items)
+- `product` - Returns the primary product (first recurring item's product)
+- `plan` - Alias for `product` (backward compatibility)
 
 Scopes:
 
 - `active`, `trialing`, `past_due`, `canceled`, `paused`
 
-Associations:
-
-- `belongs_to :subscription_price, class_name: "PaddleRails::SubscriptionPrice"`
-
-### PaddleRails::SubscriptionPlan
+### PaddleRails::SubscriptionProduct
 
 Represents a Paddle Product.
 
@@ -368,15 +375,15 @@ Represents a Paddle Product.
 Example usage:
 
 ```ruby
-plan = PaddleRails::SubscriptionPlan.active.find_by!(paddle_product_id: "pro_123")
-plan.prices # => available prices for this plan
+product = PaddleRails::SubscriptionProduct.active.find_by!(paddle_product_id: "pro_123")
+product.prices # => available prices for this product
 ```
 
 ### PaddleRails::SubscriptionPrice
 
-Represents a Paddle Price belonging to a `SubscriptionPlan`.
+Represents a Paddle Price belonging to a `SubscriptionProduct`.
 
-- `belongs_to :subscription_plan`
+- `belongs_to :subscription_product`
 - `find_by(paddle_price_id:)` - Look up by Paddle price ID
 - Suggested scopes: `active`, `for_currency("USD")`, `recurring`, `one_time`
 

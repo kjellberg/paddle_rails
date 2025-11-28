@@ -1,66 +1,68 @@
+# frozen_string_literal: true
+
 module PaddleRails
-  # Presenter for subscription plans on the onboarding page.
+  # Presenter for subscription products on the onboarding page.
   #
-  # Wraps a {SubscriptionPlan} and its active {SubscriptionPrice} records
+  # Wraps a {SubscriptionProduct} and its active {SubscriptionPrice} records
   # and exposes formatted data for the onboarding view so the template
   # can stay mostly declarative and free from business logic.
   #
   # @example Building presenters in the controller
-  #   plans = SubscriptionPlan.active.includes(:prices)
-  #   @plans = plans.each_with_index.map do |plan, index|
-  #     PaddleRails::SubscriptionPlanPresenter.new(plan, index: index)
+  #   products = SubscriptionProduct.active.includes(:prices)
+  #   @products = products.each_with_index.map do |product, index|
+  #     PaddleRails::SubscriptionProductPresenter.new(product, index: index)
   #   end
   #
   # @example Using presenter methods in the view
-  #   <% @plans.each do |plan| %>
-  #     <%= plan.name %>
-  #     <%= plan.primary_label %>  <!-- e.g. \"29 EUR / month\" -->
+  #   <% @products.each do |product| %>
+  #     <%= product.name %>
+  #     <%= product.primary_label %>  <!-- e.g. "29 EUR / month" -->
   #   <% end %>
-  class SubscriptionPlanPresenter
-    attr_reader :plan, :index
+  class SubscriptionProductPresenter
+    attr_reader :product, :index
 
     # Initialize a new presenter.
     #
-    # @param plan [PaddleRails::SubscriptionPlan] the plan being presented
-    # @param index [Integer] zero-based index of the plan in the list
+    # @param product [PaddleRails::SubscriptionProduct] the product being presented
+    # @param index [Integer] zero-based index of the product in the list
     # @param default_currency [String] fallback currency code, defaults to "EUR"
-    def initialize(plan, index: 0, default_currency: "EUR")
-      @plan = plan
+    def initialize(product, index: 0, default_currency: "EUR")
+      @product = product
       @index = index
       @default_currency = default_currency
     end
 
-    # Display name for the plan.
+    # Display name for the product.
     #
-    # Falls back to `"Plan #{index + 1}"` when the record has no name.
+    # Falls back to `"Product #{index + 1}"` when the record has no name.
     #
     # @return [String]
     def name
-      plan.name.presence || "Plan #{index + 1}"
+      product.name.presence || "Product #{index + 1}"
     end
 
-    # Description text for the plan.
+    # Description text for the product.
     #
     # @return [String, nil]
     def description
-      plan.description
+      product.description
     end
 
-    # All active prices for the plan, ordered by unit price.
+    # All active prices for the product, ordered by unit price.
     #
     # @return [ActiveRecord::Relation<PaddleRails::SubscriptionPrice>]
     def prices
-      @prices ||= plan.prices.active.order(:unit_price)
+      @prices ||= product.prices.active.order(:unit_price)
     end
 
-    # Whether the plan has any active prices.
+    # Whether the product has any active prices.
     #
     # @return [Boolean]
     def any_prices?
       prices.any?
     end
 
-    # Whether the plan has more than one active price.
+    # Whether the product has more than one active price.
     #
     # @return [Boolean]
     def multiple_prices?
@@ -117,7 +119,7 @@ module PaddleRails
     end
 
     # Returns an array of [paddle_price_id, label] pairs
-    # for all active prices on this plan.
+    # for all active prices on this product.
     #
     # @return [Array<Array(String, String)>]
     def price_options
@@ -173,5 +175,4 @@ module PaddleRails
     end
   end
 end
-
 

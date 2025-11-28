@@ -3,7 +3,6 @@ class CreatePaddleRailsSubscriptionItems < ActiveRecord::Migration[8.1]
     create_table :paddle_rails_subscription_items do |t|
       t.references :subscription, foreign_key: { to_table: :paddle_rails_subscriptions }, null: false, index: true
       t.references :subscription_price, foreign_key: { to_table: :paddle_rails_subscription_prices }, null: false, index: true
-      t.string :paddle_item_id
       t.integer :quantity, default: 1
       t.string :status
       t.boolean :recurring, default: false

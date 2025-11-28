@@ -53,10 +53,8 @@ module PaddleRails
       current_period = @payload["current_billing_period"]
       current_period_end_at = current_period&.dig("ends_at")
       
-      # Items and Price
+      # Items
       items = @payload["items"] || []
-      first_item = items.first
-      paddle_price_id = first_item&.dig("price", "id")
       
       # Resolve Owner
       owner = resolve_owner
@@ -72,7 +70,6 @@ module PaddleRails
       # Update attributes
       subscription.status = status
       subscription.current_period_end_at = current_period_end_at
-      subscription.paddle_price_id = paddle_price_id # Keep for reference, but items are source of truth
       subscription.owner = owner if owner # Only update owner if resolved (don't overwrite with nil)
       subscription.raw_payload = @payload
 
@@ -128,11 +125,13 @@ module PaddleRails
           subscription_price_id: price_record.id
         )
 
+        # Set product reference (through price)
+        subscription_item.subscription_product = price_record.subscription_product
+
         # Update attributes
         subscription_item.quantity = item_data["quantity"] || 1
         subscription_item.status = item_data["status"]
         subscription_item.recurring = item_data["recurring"] == true
-        subscription_item.paddle_item_id = item_data["id"] if item_data["id"].present?
 
         subscription_item.save!
       end

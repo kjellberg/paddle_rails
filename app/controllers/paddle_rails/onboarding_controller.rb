@@ -5,15 +5,15 @@ module PaddleRails
     before_action :redirect_to_dashboard_if_subscribed
 
     def show
-      plans = SubscriptionPlan.active.includes(:prices)
+      products = SubscriptionProduct.active.includes(:prices)
 
-      # Order plans by their lowest active price (cheapest first)
-      sorted_plans = plans.sort_by do |plan|
-        plan.prices.active.minimum(:unit_price) || Float::INFINITY
+      # Order products by their lowest active price (cheapest first)
+      sorted_products = products.sort_by do |product|
+        product.prices.active.minimum(:unit_price) || Float::INFINITY
       end
 
-      @plans = sorted_plans.each_with_index.map do |plan, index|
-        SubscriptionPlanPresenter.new(plan, index: index)
+      @products = sorted_products.each_with_index.map do |product, index|
+        SubscriptionProductPresenter.new(product, index: index)
       end
     end
 
