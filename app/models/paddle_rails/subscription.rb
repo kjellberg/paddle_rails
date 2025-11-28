@@ -61,6 +61,12 @@ module PaddleRails
       current_period_end_at.present? && current_period_end_at > Time.current
     end
 
+    # Returns true if the subscription is scheduled for cancellation at the end of the period.
+    # @return [Boolean]
+    def scheduled_for_cancellation?
+      scheduled_cancelation_at.present? && scheduled_cancelation_at > Time.current
+    end
+
     # Returns the primary product for this subscription.
     # Uses the first recurring item's product, or falls back to the first item's product.
     # @return [PaddleRails::Product, nil]

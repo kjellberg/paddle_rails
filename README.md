@@ -306,6 +306,7 @@ The `paddle_rails_subscriptions` table includes:
 - `status` - Current status (active, trialing, canceled, etc.)
 - `current_period_end_at` - When current billing period ends
 - `trial_ends_at` - When trial ends (if applicable)
+- `scheduled_cancelation_at` - When the subscription is scheduled to be canceled (if applicable)
 - `raw_payload` - Full JSON payload from Paddle for reference
 
 The `paddle_rails_products` table (Paddle Products) will include fields like:
@@ -353,6 +354,7 @@ Model methods:
 - `active?`, `trialing?`, `canceled?`, `paused?` - Status checks
 - `in_trial?` - Returns true if currently in trial period
 - `current_period_active?` - Returns true if billing period is active
+- `scheduled_for_cancellation?` - Returns true if subscription is scheduled for cancellation
 - `owner` - Returns the polymorphic owner (User, Team, etc.)
 - `items` - Returns all subscription items (has_many)
 - `prices` - Returns all prices through items (has_many through: :items)

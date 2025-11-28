@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_11_28_202363) do
+ActiveRecord::Schema[8.1].define(version: 2025_11_28_210129) do
   create_table "paddle_rails_prices", force: :cascade do |t|
     t.string "billing_interval"
     t.integer "billing_interval_count"
@@ -70,6 +70,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_28_202363) do
     t.string "owner_type", null: false
     t.string "paddle_subscription_id", null: false
     t.json "raw_payload"
+    t.datetime "scheduled_cancelation_at"
     t.string "status"
     t.datetime "trial_ends_at"
     t.datetime "updated_at", null: false

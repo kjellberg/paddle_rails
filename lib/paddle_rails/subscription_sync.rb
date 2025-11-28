@@ -53,6 +53,12 @@ module PaddleRails
       current_period = @payload["current_billing_period"]
       current_period_end_at = current_period&.dig("ends_at")
       
+      # Scheduled Change
+      scheduled_change = @payload["scheduled_change"]
+      scheduled_cancelation_at = if scheduled_change&.dig("action") == "cancel"
+                                   scheduled_change["effective_at"]
+                                 end
+      
       # Items
       items = @payload["items"] || []
       
@@ -70,6 +76,7 @@ module PaddleRails
       # Update attributes
       subscription.status = status
       subscription.current_period_end_at = current_period_end_at
+      subscription.scheduled_cancelation_at = scheduled_cancelation_at
       subscription.owner = owner if owner # Only update owner if resolved (don't overwrite with nil)
       subscription.raw_payload = @payload
 
