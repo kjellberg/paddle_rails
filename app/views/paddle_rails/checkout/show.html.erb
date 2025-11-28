@@ -11,6 +11,12 @@
   <div id="checkout-container" class="checkout-container">
     <!-- Paddle.js will automatically inject the checkout here when the transaction ID is present -->
   </div>
+
+  <!-- Processing state (hidden by default) -->
+  <div id="processing-state" class="hidden text-center">
+    <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mb-4"></div>
+    <p class="text-gray-600 text-lg">Processing your order...</p>
+  </div>
 </div>
 
 <!-- script loaded here to make sure it's loaded after the page is rendered -->
@@ -31,9 +37,92 @@
     eventCallback: function(data) {
       console.log(data);
       if (data.name == "checkout.loaded") {
+        // Checkout loaded successfully
       };
       if (data.name == "checkout.completed") {
+        // Hide checkout frame
+        var checkoutContainer = document.getElementById("checkout-container");
+        if (checkoutContainer) {
+          checkoutContainer.style.display = "none";
+        }
+
+        // Show processing state
+        var processingState = document.getElementById("processing-state");
+        if (processingState) {
+          processingState.classList.remove("hidden");
+        }
+
+        // Extract transaction ID from URL
+        var urlParams = new URLSearchParams(window.location.search);
+        var transactionId = urlParams.get("_ptxn");
+
+        if (transactionId) {
+          // Start polling for subscription status
+          pollSubscriptionStatus(transactionId);
+        } else {
+          console.error("Transaction ID not found in URL");
+          // Fallback: redirect after a delay
+          setTimeout(function() {
+            window.location.href = "<%= paddle_rails.root_path %>";
+          }, 2000);
+        }
       };
     }
   });
+
+  // Poll the subscription status endpoint
+  function pollSubscriptionStatus(transactionId) {
+    var pollInterval = 1000; // Poll every second
+    var maxAttempts = 30; // Maximum 30 attempts (30 seconds)
+    var attempts = 0;
+
+    var poll = function() {
+      attempts++;
+
+      // Construct the status check URL
+      var baseUrl = "<%= paddle_rails.check_transaction_status_path('PLACEHOLDER') %>";
+      var statusUrl = baseUrl.replace('PLACEHOLDER', encodeURIComponent(transactionId));
+      fetch(statusUrl, {
+        method: "GET",
+        headers: {
+          "Accept": "application/json",
+          "X-Requested-With": "XMLHttpRequest"
+        },
+        credentials: "same-origin"
+      })
+      .then(function(response) {
+        return response.json();
+      })
+      .then(function(data) {
+        if (data.status === "active") {
+          // Subscription is active, redirect to dashboard
+          if (data.redirect_url) {
+            window.location.href = data.redirect_url;
+          } else {
+            window.location.href = "<%= paddle_rails.root_path %>";
+          }
+        } else if (attempts >= maxAttempts) {
+          // Max attempts reached, redirect anyway
+          console.warn("Max polling attempts reached, redirecting...");
+          window.location.href = "<%= paddle_rails.root_path %>";
+        } else {
+          // Still pending, poll again
+          setTimeout(poll, pollInterval);
+        }
+      })
+      .catch(function(error) {
+        console.error("Error polling subscription status:", error);
+        // On error, retry after a delay
+        if (attempts < maxAttempts) {
+          setTimeout(poll, pollInterval);
+        } else {
+          // Max attempts reached, redirect anyway
+          window.location.href = "<%= paddle_rails.root_path %>";
+        }
+      });
+    };
+
+    // Start polling
+    poll();
+  }
 </script>

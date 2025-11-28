@@ -10,7 +10,21 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_11_27_223103) do
+ActiveRecord::Schema[8.1].define(version: 2025_11_28_133324) do
+  create_table "paddle_rails_subscription_items", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "paddle_item_id"
+    t.integer "quantity", default: 1
+    t.boolean "recurring", default: false
+    t.string "status"
+    t.integer "subscription_id", null: false
+    t.integer "subscription_price_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["subscription_id", "subscription_price_id"], name: "index_subscription_items_on_subscription_and_price", unique: true
+    t.index ["subscription_id"], name: "index_paddle_rails_subscription_items_on_subscription_id"
+    t.index ["subscription_price_id"], name: "index_paddle_rails_subscription_items_on_subscription_price_id"
+  end
+
   create_table "paddle_rails_subscription_plans", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.json "custom_data"
@@ -48,6 +62,25 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_27_223103) do
     t.index ["subscription_plan_id"], name: "index_paddle_rails_subscription_prices_on_subscription_plan_id"
   end
 
+  create_table "paddle_rails_subscriptions", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "current_period_end_at"
+    t.integer "owner_id", null: false
+    t.string "owner_type", null: false
+    t.string "paddle_price_id"
+    t.string "paddle_subscription_id", null: false
+    t.json "raw_payload"
+    t.string "status"
+    t.integer "subscription_price_id"
+    t.datetime "trial_ends_at"
+    t.datetime "updated_at", null: false
+    t.index ["owner_type", "owner_id"], name: "index_paddle_rails_subscriptions_on_owner"
+    t.index ["paddle_price_id"], name: "index_paddle_rails_subscriptions_on_paddle_price_id"
+    t.index ["paddle_subscription_id"], name: "index_paddle_rails_subscriptions_on_paddle_subscription_id", unique: true
+    t.index ["status"], name: "index_paddle_rails_subscriptions_on_status"
+    t.index ["subscription_price_id"], name: "index_paddle_rails_subscriptions_on_subscription_price_id"
+  end
+
   create_table "paddle_rails_webhook_events", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "event_type", null: false
@@ -68,5 +101,8 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_27_223103) do
     t.datetime "updated_at", null: false
   end
 
+  add_foreign_key "paddle_rails_subscription_items", "paddle_rails_subscription_prices", column: "subscription_price_id"
+  add_foreign_key "paddle_rails_subscription_items", "paddle_rails_subscriptions", column: "subscription_id"
   add_foreign_key "paddle_rails_subscription_prices", "paddle_rails_subscription_plans", column: "subscription_plan_id"
+  add_foreign_key "paddle_rails_subscriptions", "paddle_rails_subscription_prices", column: "subscription_price_id"
 end

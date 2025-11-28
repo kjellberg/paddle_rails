@@ -3,4 +3,5 @@ PaddleRails::Engine.routes.draw do
   get "onboarding", to: "onboarding#show", as: :onboarding
   post "onboarding/checkout", to: "onboarding#create_checkout", as: :onboarding_checkout
   get "checkout", to: "checkout#show", as: :checkout
+  get "checkout/check_status/:transaction_id", to: "checkout#check_status", as: :check_transaction_status
 end
