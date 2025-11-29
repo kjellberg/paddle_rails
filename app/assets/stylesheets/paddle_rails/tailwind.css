@@ -8,6 +8,7 @@
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
       "Courier New", monospace;
     --color-red-50: oklch(97.1% 0.013 17.38);
+    --color-red-100: oklch(93.6% 0.032 17.717);
     --color-red-200: oklch(88.5% 0.062 18.334);
     --color-red-600: oklch(57.7% 0.245 27.325);
     --color-red-700: oklch(50.5% 0.213 27.518);
@@ -18,6 +19,7 @@
     --color-green-200: oklch(92.5% 0.084 155.995);
     --color-green-600: oklch(62.7% 0.194 149.214);
     --color-green-800: oklch(44.8% 0.119 151.328);
+    --color-purple-50: oklch(97.7% 0.014 308.299);
     --color-purple-100: oklch(94.6% 0.033 307.174);
     --color-purple-400: oklch(71.4% 0.203 305.504);
     --color-purple-500: oklch(62.7% 0.265 303.9);
@@ -393,9 +395,6 @@
   .min-w-\[640px\] {
     min-width: 640px;
   }
-  .min-w-full {
-    min-width: 100%;
-  }
   .flex-1 {
     flex: 1;
   }
@@ -441,6 +440,9 @@
   .gap-1\.5 {
     gap: calc(var(--spacing) * 1.5);
   }
+  .gap-2 {
+    gap: calc(var(--spacing) * 2);
+  }
   .gap-3 {
     gap: calc(var(--spacing) * 3);
   }
@@ -475,11 +477,6 @@
       border-top-style: var(--tw-border-style);
       border-top-width: calc(1px * var(--tw-divide-y-reverse));
       border-bottom-width: calc(1px * calc(1 - var(--tw-divide-y-reverse)));
-    }
-  }
-  .divide-gray-100 {
-    :where(& > :not(:last-child)) {
-      border-color: var(--color-gray-100);
     }
   }
   .divide-gray-200 {
@@ -587,6 +584,9 @@
   .bg-green-600 {
     background-color: var(--color-green-600);
   }
+  .bg-purple-50 {
+    background-color: var(--color-purple-50);
+  }
   .bg-purple-100 {
     background-color: var(--color-purple-100);
   }
@@ -633,6 +633,9 @@
   }
   .px-1\.5 {
     padding-inline: calc(var(--spacing) * 1.5);
+  }
+  .px-2 {
+    padding-inline: calc(var(--spacing) * 2);
   }
   .px-2\.5 {
     padding-inline: calc(var(--spacing) * 2.5);
@@ -812,6 +815,10 @@
     transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
     transition-duration: var(--tw-duration, var(--default-transition-duration));
   }
+  .duration-200 {
+    --tw-duration: 200ms;
+    transition-duration: 200ms;
+  }
   .hover\:border-purple-400 {
     &:hover {
       @media (hover: hover) {
@@ -836,10 +843,24 @@
       }
     }
   }
+  .hover\:bg-purple-100 {
+    &:hover {
+      @media (hover: hover) {
+        background-color: var(--color-purple-100);
+      }
+    }
+  }
   .hover\:bg-purple-700 {
     &:hover {
       @media (hover: hover) {
         background-color: var(--color-purple-700);
+      }
+    }
+  }
+  .hover\:bg-red-100 {
+    &:hover {
+      @media (hover: hover) {
+        background-color: var(--color-red-100);
       }
     }
   }
@@ -1177,6 +1198,10 @@
   inherits: false;
   initial-value: 0 0 #0000;
 }
+@property --tw-duration {
+  syntax: "*";
+  inherits: false;
+}
 @keyframes spin {
   to {
     transform: rotate(360deg);
@@ -1219,6 +1244,7 @@
       --tw-ring-offset-width: 0px;
       --tw-ring-offset-color: #fff;
       --tw-ring-offset-shadow: 0 0 #0000;
+      --tw-duration: initial;
     }
   }
 }
