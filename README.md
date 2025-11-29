@@ -1,18 +1,26 @@
 # PaddleRails
 
-A plug-and-play billing portal for Rails applications using Paddle Billing.
+**The ultimate plug-and-play billing engine for Ruby on Rails and Paddle.**
 
-## What is PaddleRails?
+Building a SaaS? Stop wasting weeks on billing integration. **PaddleRails** is a production-ready Rails engine that drops a complete subscription management portal into your application in minutes.
 
-**PaddleRails** is a Rails engine that provides a complete, ready-to-use billing dashboard for your SaaS application. Mount it, configure your Paddle credentials, and you instantly have:
-
-- **Plan Selection & Checkout** — Beautiful onboarding flow with your Paddle products and prices
-- **Subscription Dashboard** — Current plan, billing dates, and subscription status
-- **Payment Method Management** — View and update card details
-- **Cancel & Resume** — Self-service subscription cancellation with one-click undo
-- **Automatic Webhook Handling** — Subscriptions stay in sync with Paddle automatically
+It's not just an API wrapper—it's a full-stack billing solution that handles the hard parts of SaaS payments: webhooks, plan upgrades, prorations, cancellation flows, and payment method updates. Fully compliant with Paddle Billing (v2), handling global tax/VAT and localized pricing automatically.
 
 No need to build billing UI from scratch. Just mount the engine and focus on your product.
+
+- ✅ **No email mismatches** - Users can change email in Paddle checkout without breaking your app
+- ✅ **No customer collisions** - Multiple users can share billing emails safely
+- ✅ **No complex customer lookups** - Identity is always resolved via secure custom_data payloads
+- ✅ **No Pay gem dependency** - Clean, simple implementation without external abstractions
+
+Instead of syncing users via Paddle Customers, the gem uses a secure custom_data hash (GlobalID) as the single source of truth. This means your app always links subscriptions to the correct user, regardless of email changes or shared billing addresses.
+
+- 🚀 **Instant SaaS Infrastructure** — Mountable billing dashboard ready in minutes
+- 💳 **Paddle Billing V2** — Built for the latest Paddle API
+- 🔄 **Two-Way Sync** — Webhooks keep your local database perfectly synchronized
+- 🎨 **Beautiful UI** — Modern, responsive dashboard built with Tailwind CSS
+- 🛡 **Identity Secure** — Uses GlobalID for bulletproof user mapping (no email mismatch issues)
+- 🏢 **B2B Ready** — Supports subscriptions on Users, Teams, Organizations, or Tenants
 
 ## Quick Start
 
@@ -25,8 +33,13 @@ gem "paddle_rails"
 
 ```bash
 $ bundle install
-$ rails generate paddle:rails:install
-$ rails db:migrate
+```
+
+Install the migrations to create the necessary tables:
+
+```bash
+$ bin/rails paddle_rails:install:migrations
+$ bin/rails db:migrate
 ```
 
 ### 2. Configure Paddle credentials
@@ -41,13 +54,15 @@ PADDLE_WEBHOOK_SECRET=your_webhook_secret
 
 ### 3. Mount the billing portal
 
-The installer adds this to your `routes.rb`:
+Add this to your `config/routes.rb`:
 
 ```ruby
 mount PaddleRails::Engine => "/billing"
 ```
 
-### 4. Make your User model subscribable
+### 4. Make your model subscribable
+
+You can add subscription capabilities to **any** model—`User`, `Organization`, `Team`, `Tenant`, or `Domain`.
 
 ```ruby
 class User < ApplicationRecord
@@ -57,8 +72,18 @@ end
 
 ### 5. Sync your Paddle products
 
+To import your products and prices from Paddle, add the sync command to your `db/seeds.rb`:
+
+```ruby
+# db/seeds.rb
+puts "Syncing Paddle products..."
+PaddleRails::ProductSync.call
+```
+
+Then run:
+
 ```bash
-$ rails paddle_rails:sync_products
+$ bin/rails db:seed
 ```
 
 ### 6. Configure webhooks in Paddle
@@ -103,7 +128,7 @@ PaddleRails.configure do |config|
   config.environment = ENV["PADDLE_ENVIRONMENT"]  # "sandbox" or "production"
   config.webhook_secret = ENV["PADDLE_WEBHOOK_SECRET"]
   
-  # How to identify the current user in the billing portal
+  # How to identify the subscription owner in the billing portal
   config.subscription_owner_authenticator do
     current_user || warden.authenticate!(scope: :user)
   end
@@ -149,7 +174,7 @@ This means:
 
 The gem automatically keeps your local database in sync with Paddle:
 
-- **Products & Prices** — Run `rails paddle_rails:sync_products` to mirror your Paddle catalog
+- **Products & Prices** — Use `PaddleRails::ProductSync.call` to mirror your Paddle catalog
 - **Subscriptions** — Webhook handlers automatically create/update subscription records
 - **Payment Methods** — Updated automatically when transactions complete
 
@@ -164,7 +189,6 @@ end
 # More detailed checks
 current_user.subscription.active?
 current_user.subscription.trialing?
-current_user.subscription.canceled?
 current_user.subscription.scheduled_for_cancellation?
 ```
 
@@ -175,7 +199,7 @@ current_user.subscription.scheduled_for_cancellation?
 Copy the views to your application to customize:
 
 ```bash
-$ rails generate paddle_rails:views
+$ bin/rails generate paddle_rails:views
 ```
 
 This copies all views to `app/views/paddle_rails/` where you can modify them.
@@ -221,7 +245,6 @@ subscription = current_user.subscription
 
 subscription.active?                    # Currently active
 subscription.trialing?                  # In trial period
-subscription.canceled?                  # Has been canceled
 subscription.scheduled_for_cancellation?  # Will cancel at period end
 subscription.current_period_end_at      # Next billing date
 subscription.items                      # All subscription items (for multi-product)
