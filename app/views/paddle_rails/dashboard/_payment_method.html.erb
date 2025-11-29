@@ -1,36 +1,47 @@
 <!-- Payment Method Section -->
 <section class="mb-8 md:mb-12">
-  <h2 class="text-xl font-normal text-gray-900 mb-6">Payment method</h2>
-  <div class="bg-white border border-gray-200 rounded-lg p-6">
+  <div class="mb-6">
+    <h2 class="text-lg font-medium text-slate-900">Payment method</h2>
+    <p class="text-sm text-slate-500 mt-0.5">Your saved payment details for automatic billing</p>
+  </div>
+  
+  <div class="bg-white rounded-xl shadow-sm border border-slate-200/60 p-6 hover:shadow-md transition-shadow duration-200">
     <% if @subscription.has_payment_method? %>
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div class="flex items-center gap-4">
-          <div class="w-12 h-8 rounded flex items-center justify-center">
+          <div class="w-14 h-10 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center">
             <%= payment_method_icon(@subscription.card_brand) %>
           </div>
           <div>
-            <p class="font-light text-gray-900">
-              <%= @subscription.card_brand %> •••• <%= @subscription.card_last4 %>
-            </p>
+            <div class="flex items-center gap-2">
+              <p class="font-medium text-slate-900">
+                <%= @subscription.card_brand %> •••• <%= @subscription.card_last4 %>
+              </p>
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20">
+                Default
+              </span>
+            </div>
             <% if @subscription.card_expiration %>
-              <p class="text-sm text-gray-500">Expires <%= @subscription.card_expiration %></p>
+              <p class="text-sm text-slate-500 mt-0.5">Expires <%= @subscription.card_expiration %></p>
             <% end %>
           </div>
         </div>
         <%= button_to "Update card details", 
             paddle_rails.update_payment_method_path, 
             method: :post,
-            class: "px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors w-full sm:w-auto" %>
+            class: "px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-all duration-200 active:scale-[0.98] shadow-sm w-full sm:w-auto" %>
       </div>
     <% else %>
-      <div class="flex items-center gap-4">
-        <div class="w-12 h-8 rounded flex items-center justify-center opacity-40">
-          <%= payment_method_icon(nil) %>
+      <div class="flex flex-col items-center text-center py-6">
+        <div class="w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+          <svg class="w-7 h-7 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+          </svg>
         </div>
-        <div>
-          <p class="font-light text-gray-900">No payment method saved</p>
-          <p class="text-sm text-gray-500">Payment method will be added during checkout</p>
-        </div>
+        <h3 class="text-sm font-medium text-slate-900 mb-1">No payment method saved</h3>
+        <p class="text-sm text-slate-500 max-w-sm">
+          A payment method will be added automatically during your next checkout.
+        </p>
       </div>
     <% end %>
   </div>

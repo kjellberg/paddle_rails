@@ -1,53 +1,61 @@
 <!-- Current Subscription Section -->
 <section class="mb-8 md:mb-12">
-  <h2 class="text-xl font-normal text-gray-900 mb-6">Current subscription</h2>
-  <div class="bg-white border border-gray-200 rounded-lg p-6">
+  <div class="mb-6">
+    <h2 class="text-lg font-medium text-slate-900">Current subscription</h2>
+    <p class="text-sm text-slate-500 mt-0.5">Manage your active plan and billing cycle</p>
+  </div>
+  
+  <div class="bg-white rounded-xl shadow-sm border border-slate-200/60 p-6 hover:shadow-md transition-shadow duration-200">
     <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between mb-4 gap-4">
       <div class="flex items-start gap-4">
-        <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center flex-shrink-0">
-          <span class="text-white font-light text-lg"><%= @subscription.product_initial %></span>
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center flex-shrink-0 shadow-sm">
+          <span class="text-white font-medium text-lg"><%= @subscription.product_initial %></span>
         </div>
         <div>
-          <h3 class="text-lg font-normal text-gray-900 mb-1"><%= @subscription.product_name %></h3>
+          <h3 class="text-lg font-medium text-slate-900 mb-1"><%= @subscription.product_name %></h3>
           <% if @subscription.has_price? %>
-            <p class="text-gray-600 text-sm">
-              <%= number_to_currency(@subscription.amount, unit: @subscription.currency_symbol) %> 
-              <%= @subscription.currency %> 
-              billed per <%= @subscription.interval_label %>
+            <p class="text-slate-600 text-sm">
+              <span class="font-medium text-slate-900"><%= number_to_currency(@subscription.amount, unit: @subscription.currency_symbol) %></span>
+              <span class="text-slate-400 mx-1">·</span>
+              <span><%= @subscription.currency %></span>
+              <span class="text-slate-400 mx-1">·</span>
+              <span>Billed per <%= @subscription.interval_label %></span>
             </p>
           <% else %>
-            <p class="text-gray-600 text-sm"><%= @subscription.price_display_text %></p>
+            <p class="text-slate-600 text-sm"><%= @subscription.price_display_text %></p>
           <% end %>
         </div>
       </div>
-      <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 self-start sm:self-auto">
-        <span class="w-1.5 h-1.5 rounded-full bg-green-600"></span>
+      <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 ring-1 ring-inset ring-emerald-600/20 self-start sm:self-auto">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
         <%= @subscription.status_label %>
       </span>
     </div>
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-5 border-t border-gray-100 mt-5">
-      <div>
-        <p class="text-xs text-gray-500 mb-1"><%= @subscription.billing_date_title %></p>
-        <div class="flex items-center gap-2">
-          <p class="text-sm font-light text-gray-900"><%= @subscription.billing_date %></p>
+    
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-5 border-t border-slate-100 mt-5">
+      <div class="bg-slate-50/50 rounded-lg p-4">
+        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1"><%= @subscription.billing_date_title %></p>
+        <div class="flex items-center gap-3">
+          <p class="text-sm font-medium text-slate-900"><%= @subscription.billing_date %></p>
           <% if @subscription.subscription.scheduled_for_cancellation? %>
             <%= button_to "Don't cancel", 
                 paddle_rails.revoke_subscription_cancellation_path, 
                 method: :post,
-                class: "text-xs font-medium text-purple-600 hover:text-purple-700 bg-purple-50 hover:bg-purple-100 px-2 py-1 rounded transition-colors duration-200" %>
+                class: "text-xs font-medium text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1 rounded-md transition-all duration-200 active:scale-[0.98]" %>
           <% elsif @subscription.subscription.active? && !@subscription.subscription.canceled? %>
             <%= button_to "Cancel subscription", 
                 paddle_rails.cancel_subscription_path, 
                 method: :post,
                 data: { turbo_confirm: "Are you sure you want to cancel your subscription?" },
-                class: "text-xs font-medium text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 px-2 py-1 rounded transition-colors duration-200" %>
+                class: "text-xs font-medium text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 px-2.5 py-1 rounded-md transition-all duration-200 active:scale-[0.98]" %>
           <% end %>
         </div>
       </div>
-      <div>
-        <p class="text-xs text-gray-500 mb-1">Amount</p>
-        <p class="text-sm font-light text-gray-900">
+      <div class="bg-slate-50/50 rounded-lg p-4">
+        <p class="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">Amount</p>
+        <p class="text-sm font-medium text-slate-900">
           <%= @subscription.has_price? ? number_to_currency(@subscription.amount, unit: @subscription.currency_symbol) : "N/A" %>
+          <span class="text-slate-500 font-normal">per <%= @subscription.interval_label %></span>
         </p>
       </div>
     </div>
