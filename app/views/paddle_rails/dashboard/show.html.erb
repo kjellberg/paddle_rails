@@ -5,3 +5,19 @@
   <%= render "payment_history" %>
   <%= render "billing_address" %>
 </div>
+
+<!-- script loaded here to make sure it's loaded after the page is rendered -->
+<script src="https://cdn.paddle.com/paddle/v2/paddle.js"></script>
+<script type="text/javascript">
+  Paddle.Environment.set("<%= PaddleRails.configuration.environment || 'sandbox' %>");
+  Paddle.Initialize({
+    token: "<%= PaddleRails.configuration.public_token %>",
+    eventCallback: function(data) {
+      if (data.name == "checkout.completed") {
+        setTimeout(function() {
+          window.location.href = "<%= url_for %>";
+        }, 2000);
+      };
+    }
+  });
+</script>

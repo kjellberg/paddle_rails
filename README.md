@@ -85,6 +85,32 @@ end
 - **`subscription_owner_authenticator`** - A proc that returns the current subscription owner. Evaluated in controller/view context. Defaults to `current_user || warden.authenticate!(scope: :user)`
 - **`customer_portal_back_path`** - A proc that returns the path for the "Back" link in the customer portal sidebar. Evaluated in controller/view context. Defaults to `main_app.root_path`
 
+### Paddle Dashboard Configuration
+
+#### Default Payment Link
+
+When customers update their payment method, Paddle opens a checkout session and redirects them back to your application after completion. Since the Paddle API doesn't allow setting a custom return URL for payment method update transactions, you must configure the **Default payment link** in your Paddle dashboard.
+
+1. Go to **Paddle Dashboard** → **Checkout** → **Checkout Settings**
+   - Sandbox: https://sandbox-vendors.paddle.com/checkout-settings
+   - Production: https://vendors.paddle.com/checkout-settings
+
+2. Set the **Default payment link** to your mounted billing dashboard URL:
+   ```
+   https://yourdomain.com/billing
+   ```
+   
+   This should match where you mounted the PaddleRails engine in your `routes.rb`:
+   ```ruby
+   mount PaddleRails::Engine => "/billing"
+   ```
+
+3. Save your changes.
+
+After updating their payment method, customers will be redirected back to your billing dashboard where they can see their updated card details.
+
+> **Note**: If you're using different URLs for development and production, make sure to configure the appropriate Default payment link in each Paddle environment (sandbox vs production).
+
 ## Usage
 
 ### 1. Make Your Models Subscribable
@@ -103,9 +129,6 @@ This gives you:
 user.subscriptions                      # All subscriptions for the user.
 user.subscription                       # Current subscription (if any)
 user.subscription?                      # Boolean check
-
-# Access the active plan via the user's current subscription
-user.subscription.plan
 
 # Create a Paddle checkout using a Paddle Price ID
 user.create_paddle_checkout(paddle_price_id: "pri_123")
@@ -136,7 +159,7 @@ The gem automatically injects the owner's GlobalID into the `custom_data` hash, 
 
 Configure your Paddle webhook endpoint:
 
-1. Go to https://vendors.paddle.com/webhooks (or https://sandbox-vendors.paddle.com/webhooks for sandbox)
+1. Go to https://vendors.paddle.com/notifications-v2 (or https://sandbox-vendors.paddle.com/notifications-v2 for sandbox)
 2. Create a notification destination with type `url` (webhook)
 3. Add webhook URL: `https://yourdomain.com/paddle_rails/webhooks` (this path is fixed and works even if the engine is not mounted)
 4. Get your webhook secret key from the notification destination settings (the `endpoint_secret_key` field) and set it as `PADDLE_WEBHOOK_SECRET` in your environment

@@ -17,9 +17,10 @@
             <% end %>
           </div>
         </div>
-        <button class="px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors w-full sm:w-auto">
-          Update card details
-        </button>
+        <%= button_to "Update card details", 
+            paddle_rails.update_payment_method_path, 
+            method: :post,
+            class: "px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors w-full sm:w-auto" %>
       </div>
     <% else %>
       <div class="flex items-center gap-4">

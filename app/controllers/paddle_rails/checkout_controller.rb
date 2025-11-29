@@ -9,6 +9,43 @@ module PaddleRails
       # is passed as a query parameter. No additional logic needed.
     end
 
+    # Creates a transaction to update payment method and redirects to checkout.
+    #
+    # Uses the Paddle API endpoint:
+    # GET /subscriptions/{subscription_id}/update-payment-method-transaction
+    #
+    # @see https://developer.paddle.com/api-reference/subscriptions/update-payment-method
+    def update_payment_method
+      subscription = subscription_owner.subscription
+
+      unless subscription
+        redirect_to root_path, alert: "No active subscription found."
+        return
+      end
+
+      begin
+        # Call Paddle API to get a transaction for updating payment method
+        # This returns a transaction with a checkout URL
+        # https://developer.paddle.com/api-reference/subscriptions/update-payment-method
+        response = Paddle::Subscription.get_transaction(
+          id: subscription.paddle_subscription_id
+        )
+
+        checkout_url = response.checkout&.url
+
+        unless checkout_url.present?
+          redirect_to root_path, alert: "Unable to create payment update session. Please try again."
+          return
+        end
+
+        # Redirect to Paddle checkout to update payment method
+        redirect_to checkout_url, allow_other_host: true
+      rescue Paddle::Error => e
+        Rails.logger.error("PaddleRails::CheckoutController: Failed to get payment update transaction: #{e.message}")
+        redirect_to root_path, alert: "Failed to update payment method. Please try again."
+      end
+    end
+
     def check_status
       transaction_id = params[:transaction_id]
 
