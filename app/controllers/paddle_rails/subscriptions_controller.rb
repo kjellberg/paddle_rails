@@ -57,5 +57,36 @@ module PaddleRails
         redirect_to root_path, alert: "Failed to cancel subscription. Please try again."
       end
     end
+
+    def change_plan
+      subscription = subscription_owner.subscription
+      price = Price.find_by(paddle_price_id: params[:paddle_price_id])
+
+      unless subscription
+        redirect_to root_path, alert: "No active subscription found."
+        return
+      end
+
+      unless price&.active?
+        redirect_to root_path, alert: "Invalid price selected."
+        return
+      end
+
+      begin
+        Paddle::Subscription.update(
+          id: subscription.paddle_subscription_id,
+          items: [{ price_id: price.paddle_price_id, quantity: 1 }],
+          proration_billing_mode: "prorated_immediately"
+        )
+
+        # Sync subscription from Paddle immediately to reflect the change
+        SubscriptionSync.sync_from_paddle(subscription.paddle_subscription_id)
+
+        redirect_to root_path, notice: "Plan changed successfully."
+      rescue Paddle::Error => e
+        Rails.logger.error("PaddleRails::SubscriptionsController: Failed to change plan: #{e.message}")
+        redirect_to root_path, alert: "Failed to change plan. Please try again."
+      end
+    end
   end
 end

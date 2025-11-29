@@ -4,6 +4,15 @@ module PaddleRails
 
     def show
       @subscription = SubscriptionPresenter.new(subscription_owner.subscription)
+      
+      # Load products for change plan widget
+      products = Product.active.includes(:prices)
+      sorted_products = products.sort_by do |product|
+        product.prices.active.minimum(:unit_price) || Float::INFINITY
+      end
+      @products = sorted_products.each_with_index.map do |product, index|
+        ProductPresenter.new(product, index: index)
+      end
     end
 
     private
