@@ -1,6 +1,6 @@
 <!-- Plan Management Section -->
 <section class="mb-8 md:mb-12">
-  <h2 class="text-xl font-normal text-gray-900 mb-6">Change Plan</h2>
+  <h2 class="text-xl font-normal text-gray-900 mb-6">Change plan</h2>
   <% if @products.any? %>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
       <% current_product = @subscription.subscription.product %>
@@ -102,7 +102,7 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
         </svg>
       </div>
-      <h3 class="text-lg font-medium text-gray-900 text-center mb-2" id="modal-title">Confirm Plan Change</h3>
+      <h3 class="text-lg font-medium text-gray-900 text-center mb-2" id="modal-title">Confirm plan change</h3>
       <div class="mt-2 px-7 py-3">
         <p class="text-sm text-gray-500 text-center mb-4" id="modal-message">
           Are you sure you want to change your plan?
@@ -211,7 +211,7 @@
           action = isUpgrade ? "upgrade to" : "downgrade to";
         }
 
-        modalTitle.textContent = "Confirm Plan Change";
+        modalTitle.textContent = "Confirm plan change";
         modalMessage.textContent = "Are you sure you want to " + action + " " + productName + "?";
         
         // Show credits message for downgrades, hide for upgrades
