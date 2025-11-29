@@ -96,6 +96,47 @@ module PaddleRails
       amount > 0
     end
 
+    def payment_method_type
+      subscription.payment_method_type
+    end
+
+    def has_payment_method?
+      subscription.payment_method_id.present?
+    end
+
+    def card_brand
+      return nil unless has_payment_method?
+      details = subscription.payment_method_details || {}
+      card = details["card"] || details[:card] || {}
+      (card["brand"] || card[:brand] || "").upcase
+    end
+
+    def card_last4
+      return nil unless has_payment_method?
+      details = subscription.payment_method_details || {}
+      card = details["card"] || details[:card] || {}
+      card["last4"] || card[:last4]
+    end
+
+    def card_expiration
+      return nil unless has_payment_method?
+      details = subscription.payment_method_details || {}
+      card = details["card"] || details[:card] || {}
+      month = card["expiry_month"] || card[:expiry_month]
+      year = card["expiry_year"] || card[:expiry_year]
+      
+      return nil unless month && year
+      
+      # Format as MM/YYYY
+      "#{month.to_s.rjust(2, '0')}/#{year}"
+    end
+
+    def payment_method_icon
+      # Return the brand name for display in the icon area
+      # This can be styled with CSS to show appropriate icons
+      card_brand.presence || "CARD"
+    end
+
     private
     
     # Removed def price as we now calculate totals across all items

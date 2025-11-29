@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_11_28_210129) do
+ActiveRecord::Schema[8.1].define(version: 2025_11_29_111504) do
   create_table "paddle_rails_prices", force: :cascade do |t|
     t.string "billing_interval"
     t.integer "billing_interval_count"
@@ -69,6 +69,9 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_28_210129) do
     t.integer "owner_id", null: false
     t.string "owner_type", null: false
     t.string "paddle_subscription_id", null: false
+    t.json "payment_method_details"
+    t.string "payment_method_id"
+    t.string "payment_method_type"
     t.json "raw_payload"
     t.datetime "scheduled_cancelation_at"
     t.string "status"
@@ -76,6 +79,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_28_210129) do
     t.datetime "updated_at", null: false
     t.index ["owner_type", "owner_id"], name: "index_paddle_rails_subscriptions_on_owner"
     t.index ["paddle_subscription_id"], name: "index_paddle_rails_subscriptions_on_paddle_subscription_id", unique: true
+    t.index ["payment_method_id"], name: "index_paddle_rails_subscriptions_on_payment_method_id"
     t.index ["status"], name: "index_paddle_rails_subscriptions_on_status"
   end
 

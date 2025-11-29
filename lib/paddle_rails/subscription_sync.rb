@@ -154,6 +154,82 @@ module PaddleRails
     def find_price_by_paddle_id(paddle_price_id)
       Price.find_by(paddle_price_id: paddle_price_id)
     end
+
+    # Sync payment method from a transaction payload.
+    #
+    # Called when processing transaction.completed webhooks.
+    # Extracts payment method details from the transaction's payments array
+    # and updates the associated subscription.
+    #
+    # @param transaction_payload [Hash] The transaction data from Paddle
+    # @return [PaddleRails::Subscription, nil] The updated subscription or nil
+    def self.sync_payment_method_from_transaction(transaction_payload)
+      payload = transaction_payload.is_a?(Hash) ? transaction_payload.stringify_keys : transaction_payload.to_h.stringify_keys
+      
+      subscription_id = payload["subscription_id"]
+      return nil unless subscription_id
+      
+      subscription = Subscription.find_by(paddle_subscription_id: subscription_id)
+      return nil unless subscription
+      
+      # Get the first successful payment from the payments array
+      payments = payload["payments"] || []
+      payment = payments.find { |p| p["status"] == "captured" } || payments.first
+      return nil unless payment
+      
+      payment_method_id = payment["payment_method_id"]
+      method_details = payment["method_details"]
+      
+      return nil unless method_details
+      
+      # Extract payment method details
+      details = extract_payment_details_from_transaction(method_details)
+      
+      subscription.payment_method_id = payment_method_id
+      subscription.payment_method_type = method_details["type"]
+      subscription.payment_method_details = details
+      subscription.save!
+      
+      subscription
+    rescue StandardError => e
+      Rails.logger.error("PaddleRails::SubscriptionSync: Error syncing payment method from transaction: #{e.message}")
+      nil
+    end
+
+    # Extract payment method details from transaction method_details.
+    #
+    # Handles the nested structure from transaction.completed webhooks:
+    # {
+    #   "type": "card",
+    #   "card": {
+    #     "type": "visa",
+    #     "last4": "4242",
+    #     "expiry_year": 2028,
+    #     "expiry_month": 12,
+    #     "cardholder_name": "..."
+    #   }
+    # }
+    #
+    # @param method_details [Hash] The method_details from payment
+    # @return [Hash] Extracted details for storage
+    def self.extract_payment_details_from_transaction(method_details)
+      return {} unless method_details.is_a?(Hash)
+      
+      details = { type: method_details["type"] }
+      
+      card_data = method_details["card"]
+      if card_data.is_a?(Hash)
+        details[:card] = {
+          brand: card_data["type"]&.upcase, # In transaction payload, card brand is in "type" field
+          last4: card_data["last4"],
+          expiry_month: card_data["expiry_month"],
+          expiry_year: card_data["expiry_year"],
+          cardholder_name: card_data["cardholder_name"]
+        }.compact
+      end
+      
+      details
+    end
   end
 end
 

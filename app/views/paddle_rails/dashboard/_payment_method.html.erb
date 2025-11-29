@@ -2,21 +2,35 @@
 <section class="mb-8 md:mb-12">
   <h2 class="text-xl font-normal text-gray-900 mb-6">Payment Method</h2>
   <div class="bg-white border border-gray-200 rounded-lg p-6">
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <% if @subscription.has_payment_method? %>
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-8 rounded flex items-center justify-center">
+            <%= payment_method_icon(@subscription.card_brand) %>
+          </div>
+          <div>
+            <p class="font-light text-gray-900">
+              <%= @subscription.card_brand %> •••• <%= @subscription.card_last4 %>
+            </p>
+            <% if @subscription.card_expiration %>
+              <p class="text-sm text-gray-500">Expires <%= @subscription.card_expiration %></p>
+            <% end %>
+          </div>
+        </div>
+        <button class="px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors w-full sm:w-auto">
+          Update card details
+        </button>
+      </div>
+    <% else %>
       <div class="flex items-center gap-4">
-        <div class="w-10 h-10 rounded border border-gray-200 flex items-center justify-center bg-gray-50">
-          <span class="text-gray-600 font-semibold text-xs">VISA</span>
+        <div class="w-12 h-8 rounded flex items-center justify-center opacity-40">
+          <%= payment_method_icon(nil) %>
         </div>
         <div>
-          <p class="font-light text-gray-900">VISA •••• 4242</p>
-          <p class="text-sm text-gray-500">Expires 12/2025</p>
+          <p class="font-light text-gray-900">No payment method saved</p>
+          <p class="text-sm text-gray-500">Payment method will be added during checkout</p>
         </div>
       </div>
-      <button class="px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 transition-colors w-full sm:w-auto">
-        Update card details
-      </button>
-    </div>
+    <% end %>
   </div>
 </section>
-
-
