@@ -50,10 +50,11 @@
 
           <div class="mb-4 flex-grow pt-2">
             <h3 class="text-lg font-semibold text-slate-900 mb-3"><%= product.name %></h3>
-            <div class="mb-4">
+            <div class="mb-1">
               <span class="text-3xl font-bold text-slate-900"><%= product.primary_amount %></span>
               <span class="text-slate-500 text-sm ml-1"><%= product.primary_currency %> / <%= product.primary_billing %></span>
             </div>
+            <p class="text-xs text-slate-400 mb-4">excl. tax</p>
             <% if product.description.present? %>
               <p class="text-sm text-slate-600 leading-relaxed"><%= product.description %></p>
             <% end %>

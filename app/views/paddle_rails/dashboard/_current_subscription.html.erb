@@ -20,6 +20,8 @@
               <span><%= @subscription.currency %></span>
               <span class="text-slate-400 mx-1">·</span>
               <span>Billed per <%= @subscription.interval_label %></span>
+              <span class="text-slate-400 mx-1">·</span>
+              <span class="text-slate-400">excl. tax</span>
             </p>
           <% else %>
             <p class="text-slate-600 text-sm"><%= @subscription.price_display_text %></p>
@@ -56,6 +58,7 @@
         <p class="text-sm font-medium text-slate-900">
           <%= @subscription.has_price? ? number_to_currency(@subscription.amount, unit: @subscription.currency_symbol) : "N/A" %>
           <span class="text-slate-500 font-normal">per <%= @subscription.interval_label %></span>
+          <span class="text-slate-400 font-normal text-xs ml-1">(excl. tax)</span>
         </p>
       </div>
     </div>
