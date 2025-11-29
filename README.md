@@ -1,121 +1,53 @@
 # PaddleRails
 
-A zero-hassle Paddle subscription integration for Rails using custom_data-based identity.
+A plug-and-play billing portal for Rails applications using Paddle Billing.
 
-## Why PaddleRails?
+## What is PaddleRails?
 
-**paddle_rails** solves the common problems with Paddle integrations:
+**PaddleRails** is a Rails engine that provides a complete, ready-to-use billing dashboard for your SaaS application. Mount it, configure your Paddle credentials, and you instantly have:
 
-- ✅ **No email mismatches** - Users can change email in Paddle checkout without breaking your app
-- ✅ **No customer collisions** - Multiple users can share billing emails safely
-- ✅ **No complex customer lookups** - Identity is always resolved via secure custom_data payloads
-- ✅ **No Pay gem dependency** - Clean, simple implementation without external abstractions
+- **Plan Selection & Checkout** — Beautiful onboarding flow with your Paddle products and prices
+- **Subscription Dashboard** — Current plan, billing dates, and subscription status
+- **Payment Method Management** — View and update card details
+- **Cancel & Resume** — Self-service subscription cancellation with one-click undo
+- **Automatic Webhook Handling** — Subscriptions stay in sync with Paddle automatically
 
-Instead of syncing users via Paddle Customers, the gem uses a secure custom_data hash (GlobalID) as the single source of truth. This means your app always links subscriptions to the correct user, regardless of email changes or shared billing addresses.
+No need to build billing UI from scratch. Just mount the engine and focus on your product.
 
-## Installation
+## Quick Start
 
-Add this line to your application's Gemfile:
+### 1. Install the gem
 
 ```ruby
+# Gemfile
 gem "paddle_rails"
 ```
 
-And then execute:
-
 ```bash
 $ bundle install
-```
-
-Run the installer:
-
-```bash
 $ rails generate paddle:rails:install
-```
-
-This will:
-- Create an initializer at `config/initializers/paddle_rails.rb`
-- Generate a migration for the subscriptions table
-- Mount the customer portal routes at `/billing`
-
-Run the migration:
-
-```bash
 $ rails db:migrate
 ```
 
-## Configuration
-
-Set the following environment variables:
+### 2. Configure Paddle credentials
 
 ```bash
-PADDLE_API_KEY=your_api_key_here
-PADDLE_PUBLIC_TOKEN=your_public_token_here
-PADDLE_ENVIRONMENT=production  # or "sandbox"
-PADDLE_WEBHOOK_SECRET=your_webhook_secret_here  # Get this from your Paddle notification destination settings
+# .env or environment variables
+PADDLE_API_KEY=your_api_key
+PADDLE_PUBLIC_TOKEN=your_public_token
+PADDLE_ENVIRONMENT=sandbox  # or "production"
+PADDLE_WEBHOOK_SECRET=your_webhook_secret
 ```
 
-Or configure in the initializer:
+### 3. Mount the billing portal
+
+The installer adds this to your `routes.rb`:
 
 ```ruby
-PaddleRails.configure do |config|
-  config.api_key = ENV["PADDLE_API_KEY"]
-  config.public_token = ENV["PADDLE_PUBLIC_TOKEN"]
-  config.environment = ENV["PADDLE_ENVIRONMENT"]
-  config.webhook_secret = ENV["PADDLE_WEBHOOK_SECRET"]
-  
-  # Configure how to authenticate the subscription owner in the customer portal
-  config.subscription_owner_authenticator do
-    current_user || warden.authenticate!(scope: :user)
-  end
-  
-  # Configure the back link path in the customer portal sidebar
-  config.customer_portal_back_path do
-    main_app.root_path  # or main_app.dashboard_path, etc.
-  end
-end
+mount PaddleRails::Engine => "/billing"
 ```
 
-### Configuration Options
-
-- **`api_key`** - Your Paddle API key (defaults to `ENV["PADDLE_API_KEY"]`)
-- **`public_token`** - Your Paddle public token (defaults to `ENV["PADDLE_PUBLIC_TOKEN"]`)
-- **`environment`** - The Paddle environment ("sandbox" or "production") (defaults to `ENV["PADDLE_ENVIRONMENT"]` or "sandbox")
-- **`webhook_secret`** - Your webhook secret key for verifying webhook signatures (defaults to `ENV["PADDLE_WEBHOOK_SECRET"]`). Get this from your Paddle notification destination settings.
-- **`subscription_owner_authenticator`** - A proc that returns the current subscription owner. Evaluated in controller/view context. Defaults to `current_user || warden.authenticate!(scope: :user)`
-- **`customer_portal_back_path`** - A proc that returns the path for the "Back" link in the customer portal sidebar. Evaluated in controller/view context. Defaults to `main_app.root_path`
-
-### Paddle Dashboard Configuration
-
-#### Default Payment Link
-
-When customers update their payment method, Paddle opens a checkout session and redirects them back to your application after completion. Since the Paddle API doesn't allow setting a custom return URL for payment method update transactions, you must configure the **Default payment link** in your Paddle dashboard.
-
-1. Go to **Paddle Dashboard** → **Checkout** → **Checkout Settings**
-   - Sandbox: https://sandbox-vendors.paddle.com/checkout-settings
-   - Production: https://vendors.paddle.com/checkout-settings
-
-2. Set the **Default payment link** to your mounted billing dashboard URL:
-   ```
-   https://yourdomain.com/billing
-   ```
-   
-   This should match where you mounted the PaddleRails engine in your `routes.rb`:
-   ```ruby
-   mount PaddleRails::Engine => "/billing"
-   ```
-
-3. Save your changes.
-
-After updating their payment method, customers will be redirected back to your billing dashboard where they can see their updated card details.
-
-> **Note**: If you're using different URLs for development and production, make sure to configure the appropriate Default payment link in each Paddle environment (sandbox vs production).
-
-## Usage
-
-### 1. Make Your Models Subscribable
-
-Include the `Subscribable` concern in any model:
+### 4. Make your User model subscribable
 
 ```ruby
 class User < ApplicationRecord
@@ -123,349 +55,211 @@ class User < ApplicationRecord
 end
 ```
 
-This gives you:
+### 5. Sync your Paddle products
 
-```ruby
-user.subscriptions                      # All subscriptions for the user.
-user.subscription                       # Current subscription (if any)
-user.subscription?                      # Boolean check
-
-# Create a Paddle checkout using a Paddle Price ID
-user.create_paddle_checkout(paddle_price_id: "pri_123")
+```bash
+$ rails paddle_rails:sync_products
 ```
 
-### 2. Create Checkouts
+### 6. Configure webhooks in Paddle
 
-Create a Paddle checkout for a user:
+Go to your [Paddle notification settings](https://vendors.paddle.com/notifications-v2) and add:
 
-```ruby
-# Get the Paddle Price ID (for example from your own lookup logic)
-paddle_price_id = "pri_123"
+- **URL**: `https://yourdomain.com/paddle_rails/webhooks`
+- **Events**: `subscription.created`, `subscription.updated`, `subscription.canceled`, `transaction.completed`
 
-# Simple checkout using the Paddle Price ID
-checkout = user.create_paddle_checkout(paddle_price_id: paddle_price_id)
+**That's it!** Visit `/billing` to see your billing portal.
 
-# With additional options
-# Note: custom_data will be merged with a signed owner SGID automatically
-checkout = user.create_paddle_checkout(
-  paddle_price_id: paddle_price_id,
-  custom_data: { foo: "bar" }  # This will be merged with { owner_sgid: "..." }
-)
-```
+## The Billing Portal
 
-The gem automatically injects the owner's GlobalID into the `custom_data` hash, so webhooks will always resolve to the correct user.
+Once mounted, PaddleRails provides these pages automatically:
 
-### 3. Handle Webhooks
+| Path | Description |
+|------|-------------|
+| `/billing` | Main dashboard showing current subscription, payment method, and billing info |
+| `/billing/onboarding` | Plan selection page for new subscribers |
+| `/billing/checkout` | Inline Paddle checkout experience |
 
-Configure your Paddle webhook endpoint:
+### Dashboard Features
 
-1. Go to https://vendors.paddle.com/notifications-v2 (or https://sandbox-vendors.paddle.com/notifications-v2 for sandbox)
-2. Create a notification destination with type `url` (webhook)
-3. Add webhook URL: `https://yourdomain.com/paddle_rails/webhooks` (this path is fixed and works even if the engine is not mounted)
-4. Get your webhook secret key from the notification destination settings (the `endpoint_secret_key` field) and set it as `PADDLE_WEBHOOK_SECRET` in your environment
-5. Select events you want to receive:
-   - `subscription.created`
-   - `subscription.updated`
-   - `subscription.canceled`
-   - `transaction.completed`
-   - And any other events you need
+- **Current Subscription** — Shows plan name, price, billing cycle, and next billing date
+- **Subscription Status** — Active, trialing, canceled, or scheduled for cancellation
+- **Payment Method** — Card brand, last 4 digits, expiration with update button
+- **Cancel Subscription** — Schedule cancellation at end of billing period
+- **Revoke Cancellation** — One-click to undo a pending cancellation
 
-The gem automatically:
-- **Verifies webhook signatures** - All incoming webhooks are verified using HMAC-SHA256 signature verification
-- **Stores events** - All webhooks are stored in the `paddle_rails_webhook_events` table for replayability and debugging
-- **Processes asynchronously** - Webhooks are processed in background jobs using ActiveJob (compatible with Sidekiq, Solid Queue, etc.)
-- **Emits notifications** - Events are broadcast via `ActiveSupport::Notifications` for your application to listen to
+### Screenshots
 
-#### Listening to Webhook Events
+The billing portal is designed to be clean and professional out of the box. It uses Tailwind CSS classes and can be customized by overriding the views.
 
-Subscribe to webhook events using `ActiveSupport::Notifications`:
+## Configuration
 
 ```ruby
-# In an initializer or application code
-ActiveSupport::Notifications.subscribe("paddle_rails.subscription.created") do |name, start, finish, id, payload|
-  webhook_event = payload[:webhook_event]
-  event_type = payload[:event_type]
-  raw_payload = payload[:raw_payload]
+# config/initializers/paddle_rails.rb
+PaddleRails.configure do |config|
+  # Paddle API credentials
+  config.api_key = ENV["PADDLE_API_KEY"]
+  config.public_token = ENV["PADDLE_PUBLIC_TOKEN"]
+  config.environment = ENV["PADDLE_ENVIRONMENT"]  # "sandbox" or "production"
+  config.webhook_secret = ENV["PADDLE_WEBHOOK_SECRET"]
   
-  # Handle subscription created event
-  # The raw_payload contains the full webhook data from Paddle
-end
-
-ActiveSupport::Notifications.subscribe("paddle_rails.subscription.updated") do |name, start, finish, id, payload|
-  # Handle subscription updated event
-end
-
-# Listen to all Paddle webhook events
-ActiveSupport::Notifications.subscribe(/^paddle_rails\./) do |name, start, finish, id, payload|
-  # Handle any Paddle webhook event
+  # How to identify the current user in the billing portal
+  config.subscription_owner_authenticator do
+    current_user || warden.authenticate!(scope: :user)
+  end
+  
+  # Where the "Back" link goes in the portal
+  config.customer_portal_back_path do
+    main_app.root_path
+  end
 end
 ```
 
-The notification name format is: `paddle_rails.{event_type}` (e.g., `paddle_rails.subscription.created`)
+### Paddle Dashboard Settings
 
-#### Webhook Event Model
+#### Default Payment Link
 
-All webhooks are stored in `PaddleRails::WebhookEvent` with the following statuses:
-- `pending` - Event received but not yet processed
-- `processing` - Currently being processed
-- `processed` - Successfully processed
-- `failed` - Processing failed (errors stored in `processing_errors`)
+When customers update their payment method, Paddle redirects them back to your app. Configure the **Default payment link** in your Paddle dashboard:
 
-You can query webhook events:
+1. Go to **Checkout Settings**:
+   - Sandbox: https://sandbox-vendors.paddle.com/checkout-settings
+   - Production: https://vendors.paddle.com/checkout-settings
 
-```ruby
-# Find a specific event
-event = PaddleRails::WebhookEvent.find_by(external_id: "evt_123")
-
-# Query by status
-PaddleRails::WebhookEvent.pending
-PaddleRails::WebhookEvent.processed
-PaddleRails::WebhookEvent.failed
-
-# Access the raw payload
-event.payload  # => Full JSON payload from Paddle
-```
-
-### 4. Work with Subscriptions
-
-```ruby
-# Find subscriptions
-subscription = PaddleRails::Subscription.find_by(paddle_subscription_id: "sub_123")
-
-# Check status
-subscription.active?
-subscription.trialing?
-subscription.canceled?
-subscription.in_trial?
-subscription.current_period_active?
-
-# Scopes
-PaddleRails::Subscription.active
-PaddleRails::Subscription.trialing
-PaddleRails::Subscription.canceled
-
-# Access owner
-subscription.owner  # Returns the User, Team, or whatever model owns it
-```
-
-### 5. Listen to Subscription Events
-
-Subscribe to ActiveSupport notifications:
-
-```ruby
-# In an initializer or application code
-ActiveSupport::Notifications.subscribe("paddle_rails.subscription.subscription.created") do |name, start, finish, id, payload|
-  subscription = payload[:subscription]
-  # Do something when subscription is created
-end
-
-ActiveSupport::Notifications.subscribe("paddle_rails.subscription.subscription.updated") do |name, start, finish, id, payload|
-  subscription = payload[:subscription]
-  # Do something when subscription is updated
-end
-```
-
-### 6. Work with Products & Prices
-
-`paddle_rails` will keep a local mirror of your Paddle subscription products and prices so you can safely reference them in Rails without hard-coding IDs.
-
-```ruby
-# Look up products and prices by Paddle IDs
-product = PaddleRails::Product.find_by(paddle_product_id: "pro_123")
-price = PaddleRails::Price.find_by(paddle_price_id: "pri_123")
-
-# Navigate relationships
-product.prices  # => all prices for the product
-price.product   # => owning product
-
-# Use in your own code (example)
-checkout = user.create_paddle_checkout(paddle_price_id: price.paddle_price_id)
-```
-
-The catalog is kept in sync with Paddle:
-
-- **Initial sync**: run `bin/rails paddle_rails:sync_products` to pull all products and prices from your Paddle account.
-- **Ongoing sync**: schedule the same task (or provided job) to run periodically so new/updated products and prices are mirrored automatically.
+2. Set **Default payment link** to your billing dashboard URL:
+   ```
+   https://yourdomain.com/billing
+   ```
 
 ## How It Works
 
-### Identity Flow
+### Identity via custom_data
 
-1. **Checkout Creation**: When you call `user.create_paddle_checkout(paddle_price_id: "pri_123")`, the gem:
-   - Creates a custom_data hash: `{ "owner_sgid": "signed-global-id-string" }`
-   - Sends this to Paddle with the checkout request (`price_id` plus `custom_data`)
-   - Paddle returns a checkout URL
+PaddleRails uses a secure approach to link Paddle subscriptions to your users:
 
-2. **Webhook Processing**: When Paddle sends a webhook:
-   - The gem verifies the HMAC-SHA256 signature using the webhook secret
-   - Stores the raw webhook event in the database for replayability
-   - Enqueues a background job to process the event asynchronously
-   - Emits an `ActiveSupport::Notification` with the event type (e.g., `paddle_rails.subscription.created`)
-   - Your application can subscribe to these notifications to handle events
-   - Future: The gem will automatically extract custom_data, resolve the owner, and create/update subscription records
+1. When creating a checkout, the gem injects a signed GlobalID into `custom_data`
+2. When webhooks arrive, this ID is used to find the correct user
+3. No reliance on email matching or Paddle customer IDs
 
-3. **No Customer Dependency**: The gem never looks up Paddle Customers by email or customer_id. Identity is always resolved through the custom_data hash.
+This means:
+- Users can change their email in Paddle checkout without breaking anything
+- Multiple users can share billing emails safely
+- Identity is always resolved correctly
 
-### Product & Price Sync
+### Automatic Sync
 
-Paddle products and prices are mirrored into two models:
+The gem automatically keeps your local database in sync with Paddle:
 
-- `PaddleRails::Product` – mirrors a Paddle Product (e.g. "Pro", "Team").
-- `PaddleRails::Price` – mirrors a Paddle Price (e.g. monthly EUR price for "Pro").
+- **Products & Prices** — Run `rails paddle_rails:sync_products` to mirror your Paddle catalog
+- **Subscriptions** — Webhook handlers automatically create/update subscription records
+- **Payment Methods** — Updated automatically when transactions complete
 
-The gem fetches data from the Paddle API and upserts local records so your Rails app always has an up-to-date view of the catalog without calling Paddle on every request.
+## Checking Subscription Status
 
-- The sync task will:
-  - Create new plans/prices for any objects that exist in Paddle but not locally.
-  - Update names, descriptions, billing intervals, and other metadata when they change in Paddle.
-  - Optionally mark missing plans/prices as inactive if they are removed or archived in Paddle.
+```ruby
+# In your controllers or views
+if current_user.subscription?
+  # User has an active subscription
+end
 
-### Database Schema
+# More detailed checks
+current_user.subscription.active?
+current_user.subscription.trialing?
+current_user.subscription.canceled?
+current_user.subscription.scheduled_for_cancellation?
+```
 
-The `paddle_rails_subscriptions` table includes:
+## Customization
 
-- `owner_type` / `owner_id` - Polymorphic association to any model
-- `paddle_subscription_id` - Paddle's subscription ID (unique)
-- `status` - Current status (active, trialing, canceled, etc.)
-- `current_period_end_at` - When current billing period ends
-- `trial_ends_at` - When trial ends (if applicable)
-- `scheduled_cancelation_at` - When the subscription is scheduled to be canceled (if applicable)
-- `raw_payload` - Full JSON payload from Paddle for reference
+### Override Views
 
-The `paddle_rails_products` table (Paddle Products) will include fields like:
+Copy the views to your application to customize:
 
-- `paddle_product_id` - Paddle's product ID (unique)
-- `name` - Human-readable name
-- `description` - Optional description
-- `status` - Whether the product is active/archived
-- Timestamps and any additional Paddle metadata you need
+```bash
+$ rails generate paddle_rails:views
+```
 
-The `paddle_rails_prices` table (Paddle Prices) will include fields like:
+This copies all views to `app/views/paddle_rails/` where you can modify them.
 
-- `product_id` - Foreign key to `Product`
-- `paddle_price_id` - Paddle's price ID (unique)
-- `currency` - Currency code (e.g. "USD")
-- `unit_price` - Price amount (integer, typically in minor units)
-- `billing_interval` / `billing_interval_count` - e.g. "month", 1
-- `trial_days` - Optional trial length
-- Timestamps and any additional Paddle metadata you need
+### Custom Webhook Handling
 
-The `paddle_rails_subscription_items` table links subscriptions to their prices and products:
+Listen to Paddle events using ActiveSupport::Notifications:
 
-- `subscription_id` - Foreign key to `Subscription`
-- `price_id` - Foreign key to `Price`
-- `product_id` - Foreign key to `Product`
-- `quantity` - Quantity of this item
-- `status` - Item status
-- `recurring` - Whether this item is recurring
+```ruby
+# config/initializers/paddle_rails.rb
+ActiveSupport::Notifications.subscribe("paddle_rails.subscription.created") do |name, start, finish, id, payload|
+  webhook_event = payload[:webhook_event]
+  # Send welcome email, provision resources, etc.
+end
 
-## API Reference
+ActiveSupport::Notifications.subscribe("paddle_rails.subscription.canceled") do |name, start, finish, id, payload|
+  # Handle cancellation
+end
+```
 
-### PaddleRails::Subscribable
+### Programmatic Checkout
 
-Methods available on any model that includes this concern:
+Create checkouts from your own code:
 
-- `paddle_subscriptions` - Association to all subscriptions
-- `subscription` - Returns the current subscription or nil
-- `subscription?` - Returns true if user has a current subscription
-- `create_paddle_checkout(paddle_price_id:, **options)` - Creates a Paddle checkout from a raw Paddle Price ID
+```ruby
+# Simple checkout
+checkout_url = current_user.create_paddle_checkout(paddle_price_id: "pri_123")
+redirect_to checkout_url, allow_other_host: true
+
+# With custom data
+checkout_url = current_user.create_paddle_checkout(
+  paddle_price_id: "pri_123",
+  custom_data: { referral_code: "ABC123" }
+)
+```
+
+## Models
 
 ### PaddleRails::Subscription
 
-Model methods:
-
-- `active?`, `trialing?`, `canceled?`, `paused?` - Status checks
-- `in_trial?` - Returns true if currently in trial period
-- `current_period_active?` - Returns true if billing period is active
-- `scheduled_for_cancellation?` - Returns true if subscription is scheduled for cancellation
-- `owner` - Returns the polymorphic owner (User, Team, etc.)
-- `items` - Returns all subscription items (has_many)
-- `prices` - Returns all prices through items (has_many through: :items)
-- `products` - Returns all products through items (has_many through: :items)
-- `product` - Returns the primary product (first recurring item's product)
-- `plan` - Alias for `product` (backward compatibility)
-
-Scopes:
-
-- `active`, `trialing`, `past_due`, `canceled`, `paused`
-
-### PaddleRails::Product
-
-Represents a Paddle Product.
-
-- `has_many :prices, class_name: "PaddleRails::Price"`
-- `find_by(paddle_product_id:)` - Look up by Paddle product ID
-- Suggested scopes: `active`, `archived`
-
-Example usage:
-
 ```ruby
-product = PaddleRails::Product.active.find_by!(paddle_product_id: "pro_123")
-product.prices # => available prices for this product
+subscription = current_user.subscription
+
+subscription.active?                    # Currently active
+subscription.trialing?                  # In trial period
+subscription.canceled?                  # Has been canceled
+subscription.scheduled_for_cancellation?  # Will cancel at period end
+subscription.current_period_end_at      # Next billing date
+subscription.items                      # All subscription items (for multi-product)
 ```
 
-### PaddleRails::Price
-
-Represents a Paddle Price belonging to a `Product`.
-
-- `belongs_to :product`
-- `find_by(paddle_price_id:)` - Look up by Paddle price ID
-- Suggested scopes: `active`, `for_currency("USD")`, `recurring`, `one_time`
-
-Example usage:
+### PaddleRails::Product & PaddleRails::Price
 
 ```ruby
-price = PaddleRails::Price.for_currency("USD").recurring.first
-user.create_paddle_checkout(paddle_price_id: price.paddle_price_id)
+# Your Paddle products, synced locally
+PaddleRails::Product.active.each do |product|
+  product.name
+  product.prices.each do |price|
+    price.unit_price  # In minor units (cents)
+    price.currency
+    price.billing_interval  # "month", "year"
+  end
+end
 ```
 
-### PaddleRails::Checkout
+## Webhook Events
 
-Service class for creating checkouts:
-
-```ruby
-# Quick helper that returns the hosted checkout URL
-checkout_url = PaddleRails::Checkout.url_for(
-  owner: user,
-  paddle_price_id: "pri_123",
-  custom_data: { foo: "bar" }  # optional
-)
-
-redirect_to checkout_url, allow_other_host: true
-```
-
-If you need the full `Paddle::Transaction` object instead, you can use `.create`:
+All webhooks are stored in `PaddleRails::WebhookEvent` for debugging and replayability:
 
 ```ruby
-checkout = PaddleRails::Checkout.create(
-  owner: user,
-  paddle_price_id: "pri_123",
-  custom_data: { foo: "bar" }  # optional
-)
-```
+PaddleRails::WebhookEvent.pending   # Not yet processed
+PaddleRails::WebhookEvent.processed # Successfully handled
+PaddleRails::WebhookEvent.failed    # Had errors
 
-In both cases, the `custom_data` hash you pass will be merged with the owner's
-**signed** GlobalID under the `"owner_sgid"` key:
-
-```ruby
-{
-  "owner_sgid" => user.to_sgid_param(for: "paddle_rails_owner"),
-  "foo"        => "bar"
-}
+event = PaddleRails::WebhookEvent.last
+event.event_type  # "subscription.created"
+event.payload     # Full JSON from Paddle
 ```
 
 ## Development
 
-After checking out the repo, run:
-
 ```bash
-bin/setup
-```
-
-Run tests:
-
-```bash
-bin/rails test
+$ bin/setup
+$ bin/rails test
 ```
 
 ## Contributing
