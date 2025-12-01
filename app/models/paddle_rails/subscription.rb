@@ -15,6 +15,7 @@ module PaddleRails
     has_many :items, class_name: "PaddleRails::SubscriptionItem", dependent: :destroy
     has_many :prices, through: :items, source: :price
     has_many :products, through: :prices, source: :product
+    has_many :payments, class_name: "PaddleRails::Payment", dependent: :destroy
 
     validates :paddle_subscription_id, presence: true, uniqueness: true
     validates :status, presence: true

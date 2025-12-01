@@ -85,12 +85,15 @@ module PaddleRails
 
     # Handler for transaction.completed events.
     #
-    # Syncs payment method details from the completed transaction
+    # Syncs payment record and payment method details from the completed transaction
     # to the associated subscription.
     def handle_transaction_completed
       transaction_data = @payload["data"]
       return unless transaction_data
 
+      # Sync payment record
+      SubscriptionSync.sync_payment(transaction_data)
+      
       # Sync payment method from the transaction
       SubscriptionSync.sync_payment_method_from_transaction(transaction_data)
     end

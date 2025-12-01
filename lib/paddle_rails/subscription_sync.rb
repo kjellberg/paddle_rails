@@ -230,6 +230,74 @@ module PaddleRails
       
       details
     end
+
+    # Sync a payment from a transaction.completed webhook payload.
+    #
+    # Creates or updates a Payment record with transaction data.
+    #
+    # @param transaction_payload [Hash] The transaction data from Paddle
+    # @return [PaddleRails::Payment, nil] The synced payment record or nil
+    def self.sync_payment(transaction_payload)
+      payload = transaction_payload.is_a?(Hash) ? transaction_payload.stringify_keys : transaction_payload.to_h.stringify_keys
+      
+      paddle_transaction_id = payload["id"]
+      return nil unless paddle_transaction_id
+      
+      subscription_id = payload["subscription_id"]
+      return nil unless subscription_id
+      
+      subscription = Subscription.find_by(paddle_subscription_id: subscription_id)
+      return nil unless subscription
+      
+      # Resolve owner from custom_data or use subscription's owner
+      owner = resolve_owner_from_payload(payload) || subscription.owner
+      return nil unless owner
+      
+      # Extract totals from details
+      details = payload["details"] || {}
+      totals = details["totals"] || {}
+      
+      # Find or initialize payment
+      payment = PaddleRails::Payment.find_or_initialize_by(paddle_transaction_id: paddle_transaction_id)
+      
+      # Update attributes
+      payment.subscription = subscription
+      payment.owner = owner
+      payment.invoice_id = payload["invoice_id"]
+      payment.invoice_number = payload["invoice_number"]
+      payment.status = payload["status"]
+      payment.origin = payload["origin"]
+      payment.total = totals["total"]&.to_i || totals[:total]&.to_i
+      payment.tax = totals["tax"]&.to_i || totals[:tax]&.to_i
+      payment.subtotal = totals["subtotal"]&.to_i || totals[:subtotal]&.to_i
+      payment.currency = totals["currency_code"] || totals[:currency_code] || payload["currency_code"]
+      payment.billed_at = payload["billed_at"] || payload["billed_at"]
+      payment.details = details
+      payment.raw_payload = payload
+      
+      payment.save!
+      payment
+    rescue StandardError => e
+      Rails.logger.error("PaddleRails::SubscriptionSync: Error syncing payment: #{e.message}")
+      Rails.logger.error(e.backtrace.join("\n"))
+      nil
+    end
+
+    # Resolve owner from transaction payload's custom_data.
+    #
+    # @param payload [Hash] The transaction payload
+    # @return [Object, nil] The owner object or nil
+    def self.resolve_owner_from_payload(payload)
+      custom_data = payload["custom_data"] || {}
+      owner_sgid = custom_data["owner_sgid"]
+      
+      return nil unless owner_sgid
+      
+      GlobalID::Locator.locate_signed(owner_sgid, for: "paddle_rails_owner")
+    rescue => e
+      Rails.logger.error("PaddleRails::SubscriptionSync: Error resolving owner from payload: #{e.message}")
+      nil
+    end
   end
 end
 

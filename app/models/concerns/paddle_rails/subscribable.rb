@@ -6,6 +6,7 @@ module PaddleRails
 
     included do
       has_many :paddle_subscriptions, as: :owner, class_name: "PaddleRails::Subscription", dependent: :destroy
+      has_many :payments, as: :owner, class_name: "PaddleRails::Payment", dependent: :destroy
     end
 
     # Returns all subscriptions for the model instance

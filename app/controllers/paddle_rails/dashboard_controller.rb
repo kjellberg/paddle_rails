@@ -13,6 +13,15 @@ module PaddleRails
       @products = sorted_products.each_with_index.map do |product, index|
         ProductPresenter.new(product, index: index)
       end
+      
+      # Load payments for payment history widget
+      @payments = if subscription_owner.subscription
+                    subscription_owner.subscription.payments.completed.recent.limit(10).map do |payment|
+                      PaymentPresenter.new(payment)
+                    end
+                  else
+                    []
+                  end
     end
 
     private

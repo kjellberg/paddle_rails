@@ -8,4 +8,6 @@ PaddleRails::Engine.routes.draw do
   post "subscriptions/revoke_cancellation", to: "subscriptions#revoke_cancellation", as: :revoke_subscription_cancellation
   post "subscriptions/cancel", to: "subscriptions#cancel", as: :cancel_subscription
   post "subscriptions/change_plan", to: "subscriptions#change_plan", as: :change_subscription_plan
+  get "payments/:id/invoice", to: "payments#view_invoice", as: :view_payment_invoice
+  get "payments/:id/download", to: "payments#download_invoice", as: :download_payment_invoice
 end
