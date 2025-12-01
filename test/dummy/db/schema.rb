@@ -10,7 +10,31 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_11_29_111504) do
+ActiveRecord::Schema[8.1].define(version: 2025_11_29_222744) do
+  create_table "paddle_rails_payments", force: :cascade do |t|
+    t.datetime "billed_at"
+    t.datetime "created_at", null: false
+    t.string "currency"
+    t.json "details"
+    t.string "invoice_id"
+    t.string "invoice_number"
+    t.string "origin"
+    t.integer "owner_id", null: false
+    t.string "owner_type", null: false
+    t.string "paddle_transaction_id", null: false
+    t.json "raw_payload"
+    t.string "status", null: false
+    t.integer "subscription_id", null: false
+    t.integer "subtotal"
+    t.integer "tax"
+    t.integer "total"
+    t.datetime "updated_at", null: false
+    t.index ["owner_type", "owner_id"], name: "index_paddle_rails_payments_on_owner"
+    t.index ["owner_type", "owner_id"], name: "index_paddle_rails_payments_on_owner_type_and_owner_id"
+    t.index ["paddle_transaction_id"], name: "index_paddle_rails_payments_on_paddle_transaction_id", unique: true
+    t.index ["subscription_id"], name: "index_paddle_rails_payments_on_subscription_id"
+  end
+
   create_table "paddle_rails_prices", force: :cascade do |t|
     t.string "billing_interval"
     t.integer "billing_interval_count"
@@ -103,6 +127,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_29_111504) do
     t.datetime "updated_at", null: false
   end
 
+  add_foreign_key "paddle_rails_payments", "paddle_rails_subscriptions", column: "subscription_id"
   add_foreign_key "paddle_rails_prices", "paddle_rails_products", column: "product_id"
   add_foreign_key "paddle_rails_prices", "paddle_rails_products", column: "product_id"
   add_foreign_key "paddle_rails_prices", "paddle_rails_products", column: "product_id"
