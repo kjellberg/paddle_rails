@@ -90,7 +90,7 @@ GEM
     connection_pool (2.5.4)
     crass (1.0.6)
     date (3.5.0)
-    dotenv (3.1.8)
+    dotenv (3.2.0)
     drb (2.2.3)
     erb (5.1.3)
     erubi (1.13.1)
@@ -138,6 +138,8 @@ GEM
       net-protocol
     nio4r (2.7.5)
     nokogiri (1.18.10-arm64-darwin)
+      racc (~> 1.4)
+    nokogiri (1.18.10-x86_64-linux-gnu)
       racc (~> 1.4)
     ostruct (0.6.3)
     paddle (2.7.1)
@@ -239,6 +241,7 @@ GEM
     ruby-progressbar (1.13.0)
     securerandom (0.4.1)
     sqlite3 (2.8.0-arm64-darwin)
+    sqlite3 (2.8.0-x86_64-linux-gnu)
     stringio (3.1.7)
     thor (1.4.0)
     timeout (0.4.4)
@@ -258,9 +261,10 @@ GEM
 
 PLATFORMS
   arm64-darwin
+  x86_64-linux
 
 DEPENDENCIES
-  dotenv (~> 3.1)
+  dotenv (~> 3.2)
   paddle_rails!
   propshaft
   puma
