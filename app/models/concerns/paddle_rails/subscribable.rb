@@ -21,6 +21,12 @@ module PaddleRails
       paddle_subscriptions.active.order(created_at: :desc).first
     end
 
+    # Returns the Plan DSL object for the current active subscription.
+    # @return [PaddleRails::Plan, nil]
+    def plan
+      subscription&.plan
+    end
+
     # Returns true if the model has a current active subscription
     # @return [Boolean]
     def subscription?

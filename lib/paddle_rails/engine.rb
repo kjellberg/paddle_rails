@@ -28,6 +28,17 @@ module PaddleRails
       end
     end
 
+    # Eager-load plan classes from the host app's app/plans/ directory.
+    initializer "paddle_rails.eager_load_plans" do
+      config.to_prepare do
+        PaddleRails::Plan.registry.clear
+        plan_path = Rails.root.join("app", "plans")
+        if plan_path.exist?
+          Dir[plan_path.join("**", "*.rb")].sort.each { |f| require_dependency f }
+        end
+      end
+    end
+
     # Prepare helpers for inclusion in controllers and views.
     #
     # Makes {PaddleRails::SubscriptionOwner} and {PaddleRails::SubscriptionOwnerHelper}

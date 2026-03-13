@@ -126,6 +126,18 @@ module PaddleRails
       prices.map { |price| [price.paddle_price_id, label_for(price)] }
     end
 
+    # Returns the Plan DSL object for this product.
+    # @return [PaddleRails::Plan, nil]
+    def plan
+      product.plan
+    end
+
+    # Returns features from the Plan DSL, or an empty array.
+    # @return [Array<String>]
+    def plan_features
+      plan&.features || []
+    end
+
     private
 
     # Convert a price's unit_price (stored in minor units) to an integer amount.

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2025_11_29_222744) do
+ActiveRecord::Schema[8.1].define(version: 2025_11_24_224102) do
   create_table "paddle_rails_payments", force: :cascade do |t|
     t.datetime "billed_at"
     t.datetime "created_at", null: false
@@ -30,7 +30,6 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_29_222744) do
     t.integer "total"
     t.datetime "updated_at", null: false
     t.index ["owner_type", "owner_id"], name: "index_paddle_rails_payments_on_owner"
-    t.index ["owner_type", "owner_id"], name: "index_paddle_rails_payments_on_owner_type_and_owner_id"
     t.index ["paddle_transaction_id"], name: "index_paddle_rails_payments_on_paddle_transaction_id", unique: true
     t.index ["subscription_id"], name: "index_paddle_rails_payments_on_subscription_id"
   end
@@ -129,11 +128,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_29_222744) do
 
   add_foreign_key "paddle_rails_payments", "paddle_rails_subscriptions", column: "subscription_id"
   add_foreign_key "paddle_rails_prices", "paddle_rails_products", column: "product_id"
-  add_foreign_key "paddle_rails_prices", "paddle_rails_products", column: "product_id"
-  add_foreign_key "paddle_rails_prices", "paddle_rails_products", column: "product_id"
   add_foreign_key "paddle_rails_subscription_items", "paddle_rails_prices", column: "price_id"
-  add_foreign_key "paddle_rails_subscription_items", "paddle_rails_prices", column: "price_id"
-  add_foreign_key "paddle_rails_subscription_items", "paddle_rails_products", column: "product_id"
   add_foreign_key "paddle_rails_subscription_items", "paddle_rails_products", column: "product_id"
   add_foreign_key "paddle_rails_subscription_items", "paddle_rails_subscriptions", column: "subscription_id"
 end

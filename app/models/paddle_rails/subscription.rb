@@ -80,8 +80,11 @@ module PaddleRails
       items.first&.product
     end
 
-    # Alias for backward compatibility
-    alias_method :plan, :product
+    # Returns the Plan DSL object for this subscription's product.
+    # @return [PaddleRails::Plan, nil]
+    def plan
+      product&.plan
+    end
   end
 end
 

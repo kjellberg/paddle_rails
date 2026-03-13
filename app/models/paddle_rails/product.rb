@@ -11,6 +11,12 @@ module PaddleRails
 
     scope :active, -> { where(status: "active") }
     scope :archived, -> { where(status: "archived") }
+
+    # Returns the Plan DSL object for this product, if one is registered.
+    # @return [PaddleRails::Plan, nil]
+    def plan
+      PaddleRails::Plan.for_product_id(paddle_product_id)
+    end
   end
 end
 
