@@ -19,6 +19,9 @@
 #
 # @see https://github.com/kjellberg/paddle_rails
 module PaddleRails
+  def self.pricing_plans_available?
+    defined?(::PricingPlans) && ::PricingPlans.respond_to?(:plans)
+  end
 end
 
 require "paddle"
