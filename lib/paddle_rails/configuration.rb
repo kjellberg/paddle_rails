@@ -49,10 +49,10 @@ module PaddleRails
         main_app.root_path
       end
 
-      @api_key = ENV.fetch("PADDLE_API_KEY")
-      @public_token = ENV.fetch("PADDLE_PUBLIC_TOKEN")
-      @environment = ENV.fetch("PADDLE_ENVIRONMENT", "sandbox")
-      @webhook_secret = ENV["PADDLE_WEBHOOK_SECRET"]
+      @api_key = ENV["PADDLE_API_KEY"] || Rails.application.credentials.dig(:paddle, :api_key)
+      @public_token = ENV["PADDLE_PUBLIC_TOKEN"] || Rails.application.credentials.dig(:paddle, :public_token)
+      @environment = ENV["PADDLE_ENVIRONMENT"] || Rails.application.credentials.dig(:paddle, :environment) || "sandbox"
+      @webhook_secret = ENV["PADDLE_WEBHOOK_SECRET"] || Rails.application.credentials.dig(:paddle, :webhook_secret)
     end
 
     # Configure the subscription owner authenticator block.
