@@ -3,4 +3,3 @@ class HomeController < ApplicationController
     @products = PaddleRails::Product.active.includes(:prices).order(:name)
   end
 end
-

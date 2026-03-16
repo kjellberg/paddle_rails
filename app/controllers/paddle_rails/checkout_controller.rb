@@ -2,7 +2,7 @@
 
 module PaddleRails
   class CheckoutController < ApplicationController
-    before_action :require_transaction_id, only: [:show]
+    before_action :require_transaction_id, only: [ :show ]
 
     def show
       # Paddle.js will automatically open the checkout when the transaction ID
@@ -62,10 +62,10 @@ module PaddleRails
       unless subscription
         begin
           transaction = Paddle::Transaction.retrieve(id: transaction_id)
-          
+
           # Extract subscription_id from transaction
           subscription_id = transaction.subscription_id
-          
+
           if subscription_id.present?
             # Sync the subscription from Paddle
             subscription = SubscriptionSync.sync_from_paddle(subscription_id)
@@ -104,11 +104,11 @@ module PaddleRails
     def find_subscription_by_transaction(transaction_id)
       # Check webhook events for this transaction
       webhook_event = WebhookEvent.where("payload->>'transaction_id' = ?", transaction_id).first
-      
+
       if webhook_event
         payload = webhook_event.payload
         subscription_id = payload.dig("subscription_id") || payload.dig("data", "subscription_id")
-        
+
         if subscription_id
           return Subscription.find_by(paddle_subscription_id: subscription_id)
         end
@@ -118,4 +118,3 @@ module PaddleRails
     end
   end
 end
-

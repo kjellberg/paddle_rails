@@ -34,12 +34,12 @@ module PaddleRails
       # Emit notification for host applications to listen to
       # Format: "paddle_rails.{event_type}"
       notification_name = "paddle_rails.#{@event_type}"
-      
+
       ActiveSupport::Notifications.instrument(notification_name) do |payload|
         payload[:webhook_event] = @event
         payload[:event_type] = @event_type
         payload[:raw_payload] = @payload
-        
+
         # Delegate to specific handler if it exists
         handler_method = handler_method_name
         if respond_to?(handler_method, true)
@@ -93,10 +93,9 @@ module PaddleRails
 
       # Sync payment record
       SubscriptionSync.sync_payment(transaction_data)
-      
+
       # Sync payment method from the transaction
       SubscriptionSync.sync_payment_method_from_transaction(transaction_data)
     end
   end
 end
-

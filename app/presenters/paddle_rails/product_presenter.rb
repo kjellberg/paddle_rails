@@ -123,7 +123,7 @@ module PaddleRails
     #
     # @return [Array<Array(String, String)>]
     def price_options
-      prices.map { |price| [price.paddle_price_id, label_for(price)] }
+      prices.map { |price| [ price.paddle_price_id, label_for(price) ] }
     end
 
     # Returns the Plan DSL object for this product.
@@ -187,4 +187,3 @@ module PaddleRails
     end
   end
 end
-

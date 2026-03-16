@@ -54,10 +54,10 @@ module PaddleRails
     end
 
     test "plan_features returns bullets from pricing plan" do
-      plan = build_pricing_plan(bullets: ["Feature A", "Feature B"])
+      plan = build_pricing_plan(bullets: [ "Feature A", "Feature B" ])
       presenter = PricingPlanPresenter.new(plan)
 
-      assert_equal ["Feature A", "Feature B"], presenter.plan_features
+      assert_equal [ "Feature A", "Feature B" ], presenter.plan_features
     end
 
     test "plan_features returns empty array when bullets is nil" do

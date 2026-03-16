@@ -25,7 +25,7 @@ module PaddleRails
     validates :external_id, presence: true, uniqueness: true
     validates :event_type, presence: true
     validates :payload, presence: true
-    validates :status, presence: true, inclusion: { in: [PENDING, PROCESSING, PROCESSED, FAILED] }
+    validates :status, presence: true, inclusion: { in: [ PENDING, PROCESSING, PROCESSED, FAILED ] }
 
     scope :pending, -> { where(status: PENDING) }
     scope :processing, -> { where(status: PROCESSING) }
@@ -48,4 +48,3 @@ module PaddleRails
     end
   end
 end
-

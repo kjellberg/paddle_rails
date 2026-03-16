@@ -11,4 +11,3 @@ module PaddleRails
     end
   end
 end
-

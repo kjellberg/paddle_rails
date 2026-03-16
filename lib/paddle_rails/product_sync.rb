@@ -44,11 +44,11 @@ module PaddleRails
       loop do
         products = Paddle::Product.list(per_page: per_page, page: page)
         break if products.data.empty?
-        
+
         products.data.each do |product|
           sync_product(product)
         end
-        
+
         # Check if there are more pages by comparing current page size with total
         break if (page * per_page) >= products.total
         page += 1
@@ -62,7 +62,7 @@ module PaddleRails
     # @raise [StandardError] If product save fails
     def sync_product(product_data)
       product = Product.find_or_initialize_by(paddle_product_id: product_data.id)
-      
+
       product.assign_attributes(
         name: product_data.name,
         description: product_data.description,
@@ -72,7 +72,7 @@ module PaddleRails
         image_url: product_data.image_url,
         custom_data: product_data.custom_data
       )
-      
+
       product.save!
     rescue StandardError => e
       Rails.logger.error("PaddleRails::ProductSync: Failed to sync product #{product_data.id}: #{e.message}")
@@ -92,11 +92,11 @@ module PaddleRails
       loop do
         prices = Paddle::Price.list(per_page: per_page, page: page)
         break if prices.data.empty?
-        
+
         prices.data.each do |price|
           sync_price(price)
         end
-        
+
         # Check if there are more pages by comparing current page size with total
         break if (page * per_page) >= prices.total
         page += 1
@@ -117,23 +117,23 @@ module PaddleRails
       end
 
       price = Price.find_or_initialize_by(paddle_price_id: price_data.id)
-      
+
       # Extract billing cycle info (OpenStruct from paddle gem)
       billing_interval = price_data.billing_cycle&.interval
       billing_interval_count = price_data.billing_cycle&.frequency
-      
+
       # Extract unit price info (OpenStruct from paddle gem)
       unit_price_amount = price_data.unit_price&.amount&.to_i
       currency_code = price_data.unit_price&.currency_code
-      
+
       # Extract trial period (store as JSON, extract days if available)
       trial_period = price_data.trial_period
       trial_days = extract_trial_days(trial_period)
-      
+
       # Extract quantity constraints
       quantity_minimum = price_data.quantity&.minimum
       quantity_maximum = price_data.quantity&.maximum
-      
+
       price.assign_attributes(
         product: product,
         name: price_data.name,
@@ -151,7 +151,7 @@ module PaddleRails
         quantity_maximum: quantity_maximum,
         custom_data: price_data.custom_data
       )
-      
+
       price.save!
     rescue StandardError => e
       Rails.logger.error("PaddleRails::ProductSync: Failed to sync price #{price_data.id}: #{e.message}")
@@ -164,13 +164,12 @@ module PaddleRails
     # @return [Integer, nil] Number of trial days, or nil if not applicable
     def extract_trial_days(trial_period)
       return nil unless trial_period
-      
+
       # trial_period is OpenStruct from paddle gem
       # Common structure: interval: "day", frequency: 14
       return trial_period.frequency if trial_period.interval == "day"
-      
+
       nil
     end
   end
 end
-

@@ -79,7 +79,7 @@ module PaddleRails
     # @return [Paddle::Transaction]
     def create
       attrs = {
-        items: [{ price_id: paddle_price_id, quantity: 1 }],
+        items: [ { price_id: paddle_price_id, quantity: 1 } ],
         custom_data: merged_custom_data
       }
 
@@ -177,5 +177,3 @@ module PaddleRails
     end
   end
 end
-
-

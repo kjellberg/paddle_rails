@@ -29,9 +29,9 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_24_224102) do
     t.integer "tax"
     t.integer "total"
     t.datetime "updated_at", null: false
-    t.index ["owner_type", "owner_id"], name: "index_paddle_rails_payments_on_owner"
-    t.index ["paddle_transaction_id"], name: "index_paddle_rails_payments_on_paddle_transaction_id", unique: true
-    t.index ["subscription_id"], name: "index_paddle_rails_payments_on_subscription_id"
+    t.index [ "owner_type", "owner_id" ], name: "index_paddle_rails_payments_on_owner"
+    t.index [ "paddle_transaction_id" ], name: "index_paddle_rails_payments_on_paddle_transaction_id", unique: true
+    t.index [ "subscription_id" ], name: "index_paddle_rails_payments_on_subscription_id"
   end
 
   create_table "paddle_rails_prices", force: :cascade do |t|
@@ -53,8 +53,8 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_24_224102) do
     t.string "type"
     t.integer "unit_price"
     t.datetime "updated_at", null: false
-    t.index ["paddle_price_id"], name: "index_paddle_rails_prices_on_paddle_price_id", unique: true
-    t.index ["product_id"], name: "index_paddle_rails_prices_on_product_id"
+    t.index [ "paddle_price_id" ], name: "index_paddle_rails_prices_on_paddle_price_id", unique: true
+    t.index [ "product_id" ], name: "index_paddle_rails_prices_on_product_id"
   end
 
   create_table "paddle_rails_products", force: :cascade do |t|
@@ -68,7 +68,7 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_24_224102) do
     t.string "tax_category"
     t.string "type"
     t.datetime "updated_at", null: false
-    t.index ["paddle_product_id"], name: "index_paddle_rails_products_on_paddle_product_id", unique: true
+    t.index [ "paddle_product_id" ], name: "index_paddle_rails_products_on_paddle_product_id", unique: true
   end
 
   create_table "paddle_rails_subscription_items", force: :cascade do |t|
@@ -80,10 +80,10 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_24_224102) do
     t.string "status"
     t.integer "subscription_id", null: false
     t.datetime "updated_at", null: false
-    t.index ["price_id"], name: "index_paddle_rails_subscription_items_on_price_id"
-    t.index ["product_id"], name: "index_paddle_rails_subscription_items_on_product_id"
-    t.index ["subscription_id", "price_id"], name: "index_subscription_items_on_subscription_and_price", unique: true
-    t.index ["subscription_id"], name: "index_paddle_rails_subscription_items_on_subscription_id"
+    t.index [ "price_id" ], name: "index_paddle_rails_subscription_items_on_price_id"
+    t.index [ "product_id" ], name: "index_paddle_rails_subscription_items_on_product_id"
+    t.index [ "subscription_id", "price_id" ], name: "index_subscription_items_on_subscription_and_price", unique: true
+    t.index [ "subscription_id" ], name: "index_paddle_rails_subscription_items_on_subscription_id"
   end
 
   create_table "paddle_rails_subscriptions", force: :cascade do |t|
@@ -100,10 +100,10 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_24_224102) do
     t.string "status"
     t.datetime "trial_ends_at"
     t.datetime "updated_at", null: false
-    t.index ["owner_type", "owner_id"], name: "index_paddle_rails_subscriptions_on_owner"
-    t.index ["paddle_subscription_id"], name: "index_paddle_rails_subscriptions_on_paddle_subscription_id", unique: true
-    t.index ["payment_method_id"], name: "index_paddle_rails_subscriptions_on_payment_method_id"
-    t.index ["status"], name: "index_paddle_rails_subscriptions_on_status"
+    t.index [ "owner_type", "owner_id" ], name: "index_paddle_rails_subscriptions_on_owner"
+    t.index [ "paddle_subscription_id" ], name: "index_paddle_rails_subscriptions_on_paddle_subscription_id", unique: true
+    t.index [ "payment_method_id" ], name: "index_paddle_rails_subscriptions_on_payment_method_id"
+    t.index [ "status" ], name: "index_paddle_rails_subscriptions_on_status"
   end
 
   create_table "paddle_rails_webhook_events", force: :cascade do |t|
@@ -115,9 +115,9 @@ ActiveRecord::Schema[8.1].define(version: 2025_11_24_224102) do
     t.text "processing_errors"
     t.string "status", default: "pending", null: false
     t.datetime "updated_at", null: false
-    t.index ["event_type"], name: "index_paddle_rails_webhook_events_on_event_type"
-    t.index ["external_id"], name: "index_paddle_rails_webhook_events_on_external_id", unique: true
-    t.index ["status"], name: "index_paddle_rails_webhook_events_on_status"
+    t.index [ "event_type" ], name: "index_paddle_rails_webhook_events_on_event_type"
+    t.index [ "external_id" ], name: "index_paddle_rails_webhook_events_on_external_id", unique: true
+    t.index [ "status" ], name: "index_paddle_rails_webhook_events_on_status"
   end
 
   create_table "users", force: :cascade do |t|

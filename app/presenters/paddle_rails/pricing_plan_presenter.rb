@@ -102,7 +102,7 @@ module PaddleRails
     end
 
     def price_options
-      paddle_prices.map { |price| [price.paddle_price_id, label_for(price)] }
+      paddle_prices.map { |price| [ price.paddle_price_id, label_for(price) ] }
     end
 
     # Product resolved from first price — needed for form IDs.
@@ -116,7 +116,7 @@ module PaddleRails
       @paddle_prices ||= begin
         pp = pricing_plan.paddle_rails_price
         return PaddleRails::Price.none unless pp
-        price_ids = pp.is_a?(Hash) ? pp.values.compact : [pp].compact
+        price_ids = pp.is_a?(Hash) ? pp.values.compact : [ pp ].compact
         PaddleRails::Price.where(paddle_price_id: price_ids).active.order(:unit_price)
       end
     end

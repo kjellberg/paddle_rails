@@ -14,7 +14,7 @@ module PaddleRails
 
       unless subscription_owner.respond_to?(:subscription?)
         render template: "paddle_rails/shared/configuration_error", status: :internal_server_error, layout: "paddle_rails/application"
-        return
+        nil
       end
     end
   end

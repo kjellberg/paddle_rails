@@ -11,7 +11,7 @@ class EnterprisePlan < PaddleRails::Plan
     "<strong>Unlimited</strong> requests",
     "<strong>500 GB</strong> storage",
     "Dedicated account manager",
-    "24/7 phone &amp; email support",
+    "24/7 phone &amp; email support"
   ]
 
   quota :storage_mb,   limit: 512_000

@@ -47,13 +47,13 @@ module PaddleRails
       return "$" if currency.blank?
       currency == "EUR" ? "€" : "$"
     end
-    
+
     def interval_label
       # Use the interval from the first recurring item, or fallback to the first item.
       # Usually all items in a subscription share the billing cycle.
       item = items.find { |i| i.recurring? && i.price.present? } || items.find { |i| i.price.present? }
       return "" unless item&.price
-      
+
       interval = item.price.billing_interval
       count = item.price.billing_interval_count || 1
 
@@ -77,12 +77,12 @@ module PaddleRails
     def billing_date
       date = if subscription.scheduled_for_cancellation?
                subscription.scheduled_cancelation_at
-             elsif subscription.canceled?
+      elsif subscription.canceled?
                subscription.updated_at
-             else
+      else
                subscription.current_period_end_at
-             end
-      
+      end
+
       date&.strftime("%B %d, %Y") || "N/A"
     end
 
@@ -124,9 +124,9 @@ module PaddleRails
       card = details["card"] || details[:card] || {}
       month = card["expiry_month"] || card[:expiry_month]
       year = card["expiry_year"] || card[:expiry_year]
-      
+
       return nil unless month && year
-      
+
       # Format as MM/YYYY
       "#{month.to_s.rjust(2, '0')}/#{year}"
     end
@@ -138,8 +138,7 @@ module PaddleRails
     end
 
     private
-    
+
     # Removed def price as we now calculate totals across all items
   end
 end
-

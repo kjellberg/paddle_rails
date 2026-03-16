@@ -13,16 +13,16 @@ module PaddleRails
     def self.sync_from_paddle(subscription_id)
       # Use the Paddle gem to retrieve the subscription
       subscription = Paddle::Subscription.retrieve(id: subscription_id)
-      
+
       # Convert to a hash compatible with our sync logic
       # Note: The Paddle gem returns OpenStruct-like objects, so we need to handle that.
       # Assuming Paddle gem returns an object where attributes are methods.
       # We can probably pass the object directly to sync_from_payload if it responds to hash-like methods
       # or convert it. For safety, let's pass the raw response if possible, or the object.
-      
+
       # If the gem returns a response object that wraps the data:
       payload = subscription.respond_to?(:attributes) ? subscription.attributes : subscription.to_h
-      
+
       new(payload).sync
     end
 
@@ -48,23 +48,23 @@ module PaddleRails
 
       # Extract attributes
       status = @payload["status"]
-      
+
       # Dates
       current_period = @payload["current_billing_period"]
       current_period_end_at = current_period&.dig("ends_at")
-      
+
       # Scheduled Change
       scheduled_change = @payload["scheduled_change"]
       scheduled_cancelation_at = if scheduled_change&.dig("action") == "cancel"
                                    scheduled_change["effective_at"]
-                                 end
-      
+      end
+
       # Items
       items = @payload["items"] || []
-      
+
       # Resolve Owner
       owner = resolve_owner
-      
+
       # If owner is missing for a new subscription, we can't save it properly
       # unless we allow orphans. For now, we log an error if owner is missing.
       if owner.nil? && subscription.new_record?
@@ -165,31 +165,31 @@ module PaddleRails
     # @return [PaddleRails::Subscription, nil] The updated subscription or nil
     def self.sync_payment_method_from_transaction(transaction_payload)
       payload = transaction_payload.is_a?(Hash) ? transaction_payload.stringify_keys : transaction_payload.to_h.stringify_keys
-      
+
       subscription_id = payload["subscription_id"]
       return nil unless subscription_id
-      
+
       subscription = Subscription.find_by(paddle_subscription_id: subscription_id)
       return nil unless subscription
-      
+
       # Get the first successful payment from the payments array
       payments = payload["payments"] || []
       payment = payments.find { |p| p["status"] == "captured" } || payments.first
       return nil unless payment
-      
+
       payment_method_id = payment["payment_method_id"]
       method_details = payment["method_details"]
-      
+
       return nil unless method_details
-      
+
       # Extract payment method details
       details = extract_payment_details_from_transaction(method_details)
-      
+
       subscription.payment_method_id = payment_method_id
       subscription.payment_method_type = method_details["type"]
       subscription.payment_method_details = details
       subscription.save!
-      
+
       subscription
     rescue StandardError => e
       Rails.logger.error("PaddleRails::SubscriptionSync: Error syncing payment method from transaction: #{e.message}")
@@ -214,9 +214,9 @@ module PaddleRails
     # @return [Hash] Extracted details for storage
     def self.extract_payment_details_from_transaction(method_details)
       return {} unless method_details.is_a?(Hash)
-      
+
       details = { type: method_details["type"] }
-      
+
       card_data = method_details["card"]
       if card_data.is_a?(Hash)
         details[:card] = {
@@ -227,7 +227,7 @@ module PaddleRails
           cardholder_name: card_data["cardholder_name"]
         }.compact
       end
-      
+
       details
     end
 
@@ -239,27 +239,27 @@ module PaddleRails
     # @return [PaddleRails::Payment, nil] The synced payment record or nil
     def self.sync_payment(transaction_payload)
       payload = transaction_payload.is_a?(Hash) ? transaction_payload.stringify_keys : transaction_payload.to_h.stringify_keys
-      
+
       paddle_transaction_id = payload["id"]
       return nil unless paddle_transaction_id
-      
+
       subscription_id = payload["subscription_id"]
       return nil unless subscription_id
-      
+
       subscription = Subscription.find_by(paddle_subscription_id: subscription_id)
       return nil unless subscription
-      
+
       # Resolve owner from custom_data or use subscription's owner
       owner = resolve_owner_from_payload(payload) || subscription.owner
       return nil unless owner
-      
+
       # Extract totals from details
       details = payload["details"] || {}
       totals = details["totals"] || {}
-      
+
       # Find or initialize payment
       payment = PaddleRails::Payment.find_or_initialize_by(paddle_transaction_id: paddle_transaction_id)
-      
+
       # Update attributes
       payment.subscription = subscription
       payment.owner = owner
@@ -274,7 +274,7 @@ module PaddleRails
       payment.billed_at = payload["billed_at"] || payload["billed_at"]
       payment.details = details
       payment.raw_payload = payload
-      
+
       payment.save!
       payment
     rescue StandardError => e
@@ -290,9 +290,9 @@ module PaddleRails
     def self.resolve_owner_from_payload(payload)
       custom_data = payload["custom_data"] || {}
       owner_sgid = custom_data["owner_sgid"]
-      
+
       return nil unless owner_sgid
-      
+
       GlobalID::Locator.locate_signed(owner_sgid, for: "paddle_rails_owner")
     rescue => e
       Rails.logger.error("PaddleRails::SubscriptionSync: Error resolving owner from payload: #{e.message}")
@@ -300,4 +300,3 @@ module PaddleRails
     end
   end
 end
-

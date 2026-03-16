@@ -74,7 +74,7 @@ module PaddleRails
         end
       end
 
-      [timestamp, signatures]
+      [ timestamp, signatures ]
     end
 
     # Check if the timestamp is within the tolerance window.
@@ -107,4 +107,3 @@ module PaddleRails
     end
   end
 end
-

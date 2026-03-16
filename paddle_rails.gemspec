@@ -9,9 +9,9 @@ Gem::Specification.new do |spec|
   spec.summary     = "Plug-and-play billing engine for Rails + Paddle. Full subscription management portal with webhooks, plan changes, and payment history."
   spec.description = <<~DESC
     PaddleRails is a production-ready Rails engine that drops a complete subscription management portal into your application in minutes.
-    
+
     It's not just an API wrapper—it's a full-stack billing solution that handles the hard parts of SaaS payments: webhooks, plan upgrades, prorations, cancellation flows, and payment method updates. Fully compliant with Paddle Billing (v2), handling global tax/VAT and localized pricing automatically.
-    
+
     Features:
     - Mountable billing dashboard ready in minutes
     - Built for Paddle Billing V2
@@ -22,7 +22,7 @@ Gem::Specification.new do |spec|
     - Payment history with invoice viewing and download
     - Plan upgrades/downgrades with proration
     - Payment method management
-    
+
     No need to build billing UI from scratch. Just mount the engine and focus on your product.
   DESC
   spec.license     = "MIT"

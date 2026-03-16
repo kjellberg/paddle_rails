@@ -13,7 +13,7 @@ module PaddleRails
 
     def create_checkout
       price = Price.find_by(paddle_price_id: params[:paddle_price_id])
-      
+
       unless price&.active?
         redirect_to onboarding_path, alert: "Invalid price selected."
         return
@@ -46,4 +46,3 @@ module PaddleRails
     end
   end
 end
-

@@ -32,7 +32,7 @@ module PaddleRails
     # @return [String] The SVG markup (html_safe)
     def payment_method_icon(brand, size: "w-8 h-5")
       svg = case brand&.to_s&.upcase
-            when "VISA"
+      when "VISA"
               <<~SVG
                 <svg class="#{size}" viewBox="0 0 48 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <rect width="48" height="32" rx="4" fill="#1A1F71"/>
@@ -43,7 +43,7 @@ module PaddleRails
                   <path d="M11.1 11H6.9L6.8 11.2C10.1 12 12.3 14 13.1 16.3L12.2 11.9C12.1 11.3 11.7 11.1 11.1 11Z" fill="#F9A51A"/>
                 </svg>
               SVG
-            when "MASTERCARD"
+      when "MASTERCARD"
               <<~SVG
                 <svg class="#{size}" viewBox="0 0 48 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <rect width="48" height="32" rx="4" fill="#000"/>
@@ -52,7 +52,7 @@ module PaddleRails
                   <path d="M24 10.4C25.8 11.9 27 14 27 16C27 18 25.8 20.1 24 21.6C22.2 20.1 21 18 21 16C21 14 22.2 11.9 24 10.4Z" fill="#FF5F00"/>
                 </svg>
               SVG
-            when "AMEX", "AMERICAN EXPRESS"
+      when "AMEX", "AMERICAN EXPRESS"
               <<~SVG
                 <svg class="#{size}" viewBox="0 0 48 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <rect width="48" height="32" rx="4" fill="#006FCF"/>
@@ -62,7 +62,7 @@ module PaddleRails
                   <path d="M38 11H40.5L42 14L43.5 11H46L43 15.5L46 20H43.5L42 17L40.5 20H38L41 15.5L38 11Z" fill="white"/>
                 </svg>
               SVG
-            when "DISCOVER"
+      when "DISCOVER"
               <<~SVG
                 <svg class="#{size}" viewBox="0 0 48 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <rect width="48" height="32" rx="4" fill="#fff"/>
@@ -72,7 +72,7 @@ module PaddleRails
                   <text x="8" y="18" font-family="Arial" font-size="8" font-weight="bold" fill="#000">DISCOVER</text>
                 </svg>
               SVG
-            when "DINERS", "DINERS CLUB"
+      when "DINERS", "DINERS CLUB"
               <<~SVG
                 <svg class="#{size}" viewBox="0 0 48 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <rect width="48" height="32" rx="4" fill="#0079BE"/>
@@ -81,7 +81,7 @@ module PaddleRails
                   <path d="M29 16C29 18.8 27.2 21.1 24.7 21.8V10.2C27.2 10.9 29 13.2 29 16Z" fill="#0079BE"/>
                 </svg>
               SVG
-            when "JCB"
+      when "JCB"
               <<~SVG
                 <svg class="#{size}" viewBox="0 0 48 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <rect width="48" height="32" rx="4" fill="#fff"/>
@@ -94,7 +94,7 @@ module PaddleRails
                   <text x="33" y="19" font-family="Arial" font-size="6" font-weight="bold" fill="white">B</text>
                 </svg>
               SVG
-            when "UNIONPAY"
+      when "UNIONPAY"
               <<~SVG
                 <svg class="#{size}" viewBox="0 0 48 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <rect width="48" height="32" rx="4" fill="#1A4788"/>
@@ -103,7 +103,7 @@ module PaddleRails
                   <path d="M26 6H36L34 26H24L26 6Z" fill="#007B84"/>
                 </svg>
               SVG
-            else
+      else
               # Generic card icon
               <<~SVG
                 <svg class="#{size}" viewBox="0 0 48 32" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -113,7 +113,7 @@ module PaddleRails
                   <rect x="28" y="22" width="8" height="2" rx="1" fill="#9CA3AF"/>
                 </svg>
               SVG
-            end
+      end
 
       svg.html_safe
     end
