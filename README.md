@@ -33,16 +33,15 @@ gem "paddle_rails"
 
 ```bash
 $ bundle install
-```
-
-Install the migrations to create the necessary tables:
-
-```bash
-$ bin/rails paddle_rails:install:migrations
+$ bin/rails generate paddle_rails:install
 $ bin/rails db:migrate
 ```
 
 ### 2. Configure Paddle credentials
+
+PaddleRails looks for credentials in this order: **environment variables → Rails credentials → nil**. You only need to configure one source.
+
+**Option A: Environment variables** (recommended for containers, CI, local dev with dotenv)
 
 ```bash
 # .env or environment variables
@@ -50,6 +49,20 @@ PADDLE_API_KEY=your_api_key
 PADDLE_PUBLIC_TOKEN=your_public_token
 PADDLE_ENVIRONMENT=sandbox  # or "production"
 PADDLE_WEBHOOK_SECRET=your_webhook_secret
+```
+
+**Option B: Rails credentials** (recommended for production secrets)
+
+```bash
+$ bin/rails credentials:edit
+```
+
+```yaml
+paddle:
+  api_key: your_api_key
+  public_token: your_public_token
+  environment: sandbox
+  webhook_secret: your_webhook_secret
 ```
 
 ### 3. Mount the billing portal
@@ -119,26 +132,37 @@ The billing portal is designed to be clean and professional out of the box. It u
 
 ## Configuration
 
+Credentials are automatically loaded from environment variables or Rails credentials (see [Quick Start](#2-configure-paddle-credentials)). You only need an initializer if you want to override defaults or customize the authenticator:
+
 ```ruby
 # config/initializers/paddle_rails.rb
 PaddleRails.configure do |config|
-  # Paddle API credentials
-  config.api_key = ENV["PADDLE_API_KEY"]
-  config.public_token = ENV["PADDLE_PUBLIC_TOKEN"]
-  config.environment = ENV["PADDLE_ENVIRONMENT"]  # "sandbox" or "production"
-  config.webhook_secret = ENV["PADDLE_WEBHOOK_SECRET"]
-  
+  # Override credentials (optional — env vars and Rails credentials are used by default)
+  # config.api_key = "your_api_key"
+  # config.public_token = "your_public_token"
+  # config.environment = "sandbox"  # or "production" (defaults to "sandbox")
+  # config.webhook_secret = "your_webhook_secret"
+
   # How to identify the subscription owner in the billing portal
   config.subscription_owner_authenticator do
     current_user || warden.authenticate!(scope: :user)
   end
-  
+
   # Where the "Back" link goes in the portal
   config.customer_portal_back_path do
     main_app.root_path
   end
 end
 ```
+
+### Credential Lookup Order
+
+Each credential is resolved in this order:
+
+1. **Explicit config** — value set in the initializer block
+2. **Environment variable** — `PADDLE_API_KEY`, `PADDLE_PUBLIC_TOKEN`, `PADDLE_ENVIRONMENT`, `PADDLE_WEBHOOK_SECRET`
+3. **Rails credentials** — `rails credentials:edit` under the `paddle:` key
+4. **Default** — `"sandbox"` for environment, `nil` for everything else
 
 ### Paddle Dashboard Settings
 

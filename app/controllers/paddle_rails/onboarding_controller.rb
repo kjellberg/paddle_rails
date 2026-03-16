@@ -5,15 +5,9 @@ module PaddleRails
     before_action :redirect_to_dashboard_if_subscribed
 
     def show
-      products = Product.active.includes(:prices)
-
-      # Order products by their lowest active price (cheapest first)
-      sorted_products = products.sort_by do |product|
-        product.prices.active.minimum(:unit_price) || Float::INFINITY
-      end
-
-      @products = sorted_products.each_with_index.map do |product, index|
-        ProductPresenter.new(product, index: index)
+      @pricing_plans_mode = PaddleRails.pricing_plans_available?
+      if @pricing_plans_mode
+        @plans = ::PricingPlans.plans.map { |plan| PricingPlanPresenter.new(plan) }
       end
     end
 

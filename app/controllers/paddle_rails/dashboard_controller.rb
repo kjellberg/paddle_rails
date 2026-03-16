@@ -5,13 +5,14 @@ module PaddleRails
     def show
       @subscription = SubscriptionPresenter.new(subscription_owner.subscription)
       
-      # Load products for change plan widget
-      products = Product.active.includes(:prices)
-      sorted_products = products.sort_by do |product|
-        product.prices.active.minimum(:unit_price) || Float::INFINITY
-      end
-      @products = sorted_products.each_with_index.map do |product, index|
-        ProductPresenter.new(product, index: index)
+      # Load plans for change plan widget
+      @pricing_plans_mode = PaddleRails.pricing_plans_available?
+      if @pricing_plans_mode
+        current_plan = ::PricingPlans::PlanResolver.effective_plan_for(subscription_owner)
+        @plans = ::PricingPlans.plans.map { |plan| PricingPlanPresenter.new(plan, current_plan: current_plan) }
+        @current_price_id = subscription_owner.subscription.items
+          .find_by(recurring: true)&.price&.paddle_price_id ||
+          subscription_owner.subscription.items.first&.price&.paddle_price_id
       end
       
       # Load payments for payment history widget

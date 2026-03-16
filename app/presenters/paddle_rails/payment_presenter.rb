@@ -29,12 +29,15 @@ module PaddleRails
       return "N/A" unless payment.total
       amount_value = payment.amount_in_currency
       currency_symbol = currency_symbol_for(payment.currency)
-      "#{currency_symbol}#{format('%.2f', amount_value.abs)}"
+      sign = credit? ? "+" : "-"
+      "#{sign}#{currency_symbol}#{format('%.2f', amount_value.abs)}"
     end
 
     # Returns the status label for display.
     # @return [String]
     def status_label
+      return "Refunded" if credit?
+
       case payment.status
       when "completed"
         "Paid"

@@ -15,9 +15,11 @@ module PaddleRails
     # Sets up the Paddle gem with environment and API key from
     # PaddleRails configuration, falling back to environment variables.
     initializer "paddle_rails.configuration" do
-      Paddle.configure do |config|
-        config.environment = ENV.fetch("PADDLE_ENVIRONMENT", "sandbox").to_sym
-        config.api_key = PaddleRails.configuration.api_key
+      if PaddleRails.configuration.api_key.present?
+        Paddle.configure do |config|
+          config.environment = PaddleRails.configuration.environment.to_sym
+          config.api_key = PaddleRails.configuration.api_key
+        end
       end
     end
 
