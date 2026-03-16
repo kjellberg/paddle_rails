@@ -2,5 +2,5 @@
 
 module PaddleRails
   # Current version of the PaddleRails gem.
-  VERSION = "0.1.0"
+  VERSION = "0.1.1"
 end

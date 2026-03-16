@@ -10,7 +10,7 @@ PaddleRails is a Rails engine gem that provides a complete SaaS billing portal b
 
 ```bash
 # Run all tests
-bin/rails db:test:prepare test
+bin/rails db:test:prepare && bin/rails test
 
 # Run a single test file
 bin/rails test test/models/paddle_rails/subscription_test.rb
