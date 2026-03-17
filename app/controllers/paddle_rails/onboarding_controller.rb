@@ -35,7 +35,7 @@ module PaddleRails
     private
 
     def checkout_url
-      onboarding_url
+      paddle_rails.checkout_url
     end
 
     def redirect_to_dashboard_if_subscribed

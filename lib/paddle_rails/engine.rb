@@ -30,6 +30,11 @@ module PaddleRails
           paddle_config.environment = config.environment.to_sym
           paddle_config.api_key = config.api_key
         end
+
+        # Reset the memoized Faraday connection so it picks up the new API key.
+        # Paddle::Client caches @connection on first use; if any code triggered
+        # the connection before this hook ran, it would have stale/empty auth.
+        Paddle::Client.instance_variable_set(:@connection, nil)
       end
     end
 

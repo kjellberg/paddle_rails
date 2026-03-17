@@ -73,6 +73,14 @@ module PaddleRails
       end
 
       begin
+        # Clear any pending cancellation before changing plan
+        if subscription.scheduled_for_cancellation?
+          Paddle::Subscription.update(
+            id: subscription.paddle_subscription_id,
+            scheduled_change: nil
+          )
+        end
+
         Paddle::Subscription.update(
           id: subscription.paddle_subscription_id,
           items: [ { price_id: price.paddle_price_id, quantity: 1 } ],
