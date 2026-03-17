@@ -25,8 +25,10 @@ module PaddleRails
     #
     # @return [void]
     def call
-      sync_products
-      sync_prices
+      ActiveRecord::Base.transaction do
+        sync_products
+        sync_prices
+      end
     end
 
     private

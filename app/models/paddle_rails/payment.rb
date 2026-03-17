@@ -12,6 +12,8 @@ module PaddleRails
 
     validates :paddle_transaction_id, presence: true, uniqueness: true
     validates :status, presence: true
+    validates :currency, presence: true
+    validates :billed_at, presence: true
 
     scope :completed, -> { where(status: "completed") }
     scope :recent, -> { order(billed_at: :desc) }

@@ -18,7 +18,7 @@ module PaddleRails
     #
     # @return [Boolean]
     def active?
-      status == "active"
+      status == "active" && product&.status == "active"
     end
   end
 end

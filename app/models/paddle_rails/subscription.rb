@@ -17,8 +17,10 @@ module PaddleRails
     has_many :products, through: :prices, source: :product
     has_many :payments, class_name: "PaddleRails::Payment", dependent: :destroy
 
+    STATUSES = [ACTIVE, TRIALING, PAST_DUE, PAUSED, CANCELED].freeze
+
     validates :paddle_subscription_id, presence: true, uniqueness: true
-    validates :status, presence: true
+    validates :status, presence: true, inclusion: { in: STATUSES }
 
     scope :active, -> { where(status: ACTIVE) }
     scope :trialing, -> { where(status: TRIALING) }

@@ -8,6 +8,7 @@ module PaddleRails
     has_many :prices, class_name: "PaddleRails::Price", foreign_key: "product_id", dependent: :destroy
 
     validates :paddle_product_id, presence: true, uniqueness: true
+    validates :status, presence: true
 
     scope :active, -> { where(status: "active") }
     scope :archived, -> { where(status: "archived") }

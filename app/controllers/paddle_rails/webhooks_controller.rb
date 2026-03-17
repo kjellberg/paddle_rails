@@ -51,6 +51,10 @@ module PaddleRails
       ProcessWebhookJob.perform_later(webhook_event.id)
 
       head :ok
+    rescue ActiveRecord::RecordNotUnique
+      # Another request already stored this event — treat as duplicate
+      Rails.logger.info("PaddleRails::WebhooksController: Webhook #{external_id} already stored (race), skipping")
+      head :ok
     rescue JSON::ParserError => e
       Rails.logger.error("PaddleRails::WebhooksController: Invalid JSON payload: #{e.message}")
       head :bad_request

@@ -14,11 +14,21 @@ module PaddleRails
     #
     # Sets up the Paddle gem with environment and API key from
     # PaddleRails configuration, falling back to environment variables.
-    initializer "paddle_rails.configuration" do
-      if PaddleRails.configuration.api_key.present?
-        Paddle.configure do |config|
-          config.environment = PaddleRails.configuration.environment.to_sym
-          config.api_key = PaddleRails.configuration.api_key
+    config.after_initialize do
+      config = PaddleRails.configuration
+
+      if config.api_key.blank?
+        Rails.logger.warn("PaddleRails: api_key is not configured. Paddle API calls will fail.")
+      end
+
+      if config.webhook_secret.blank?
+        Rails.logger.warn("PaddleRails: webhook_secret is not configured. Webhook signature verification will reject all requests.")
+      end
+
+      if config.api_key.present?
+        Paddle.configure do |paddle_config|
+          paddle_config.environment = config.environment.to_sym
+          paddle_config.api_key = config.api_key
         end
       end
     end

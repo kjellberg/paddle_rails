@@ -19,6 +19,18 @@
 #
 # @see https://github.com/kjellberg/paddle_rails
 module PaddleRails
+  # Base error class for all PaddleRails errors
+  class Error < StandardError; end
+
+  # Raised when configuration is missing or invalid
+  class ConfigurationError < Error; end
+
+  # Raised when webhook signature verification fails
+  class WebhookVerificationError < Error; end
+
+  # Raised when subscription sync encounters an unrecoverable problem
+  class SyncError < Error; end
+
   def self.pricing_plans_available?
     defined?(::PricingPlans) && ::PricingPlans.respond_to?(:plans)
   end

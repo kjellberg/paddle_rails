@@ -43,9 +43,6 @@ module PaddleRails
       paddle_subscription_id = @payload["id"]
       return nil unless paddle_subscription_id
 
-      # Find existing subscription or initialize new one
-      subscription = Subscription.find_or_initialize_by(paddle_subscription_id: paddle_subscription_id)
-
       # Extract attributes
       status = @payload["status"]
 
@@ -65,27 +62,33 @@ module PaddleRails
       # Resolve Owner
       owner = resolve_owner
 
-      # If owner is missing for a new subscription, we can't save it properly
-      # unless we allow orphans. For now, we log an error if owner is missing.
-      if owner.nil? && subscription.new_record?
-        Rails.logger.error("PaddleRails::SubscriptionSync: Could not resolve owner for subscription #{paddle_subscription_id}. Custom data: #{@payload['custom_data']}")
-        # We might want to create it anyway if we can link it later, but validation requires owner.
-        return nil
+      ActiveRecord::Base.transaction do
+        # Find existing subscription or initialize new one
+        subscription = Subscription.find_or_initialize_by(paddle_subscription_id: paddle_subscription_id)
+
+        # If owner is missing for a new subscription, we can't save it properly
+        if owner.nil? && subscription.new_record?
+          Rails.logger.error("PaddleRails::SubscriptionSync: Could not resolve owner for subscription #{paddle_subscription_id}. Custom data: #{@payload['custom_data']}")
+          return nil
+        end
+
+        # Lock existing records to prevent concurrent webhook races
+        subscription.lock! if subscription.persisted?
+
+        # Update attributes
+        subscription.status = status
+        subscription.current_period_end_at = current_period_end_at
+        subscription.scheduled_cancelation_at = scheduled_cancelation_at
+        subscription.owner = owner if owner # Only update owner if resolved (don't overwrite with nil)
+        subscription.raw_payload = @payload
+
+        subscription.save!
+
+        # Sync items within the same transaction
+        sync_items(subscription, items)
+
+        subscription
       end
-
-      # Update attributes
-      subscription.status = status
-      subscription.current_period_end_at = current_period_end_at
-      subscription.scheduled_cancelation_at = scheduled_cancelation_at
-      subscription.owner = owner if owner # Only update owner if resolved (don't overwrite with nil)
-      subscription.raw_payload = @payload
-
-      subscription.save!
-
-      # Sync items
-      sync_items(subscription, items)
-
-      subscription
     end
 
     private
@@ -98,7 +101,7 @@ module PaddleRails
 
       # Use GlobalID to locate the owner
       GlobalID::Locator.locate_signed(owner_sgid, for: "paddle_rails_owner")
-    rescue => e
+    rescue StandardError => e
       Rails.logger.error("PaddleRails::SubscriptionSync: Error resolving owner: #{e.message}")
       nil
     end
@@ -294,7 +297,7 @@ module PaddleRails
       return nil unless owner_sgid
 
       GlobalID::Locator.locate_signed(owner_sgid, for: "paddle_rails_owner")
-    rescue => e
+    rescue StandardError => e
       Rails.logger.error("PaddleRails::SubscriptionSync: Error resolving owner from payload: #{e.message}")
       nil
     end

@@ -1,6 +1,6 @@
 module PaddleRails
   class OnboardingController < ApplicationController
-    # include PaddleCheckoutErrorHandler
+    include PaddleCheckoutErrorHandler
 
     before_action :redirect_to_dashboard_if_subscribed
 
@@ -33,6 +33,10 @@ module PaddleRails
     end
 
     private
+
+    def checkout_url
+      onboarding_url
+    end
 
     def redirect_to_dashboard_if_subscribed
       return unless subscription_owner
