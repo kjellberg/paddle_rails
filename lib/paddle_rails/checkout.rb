@@ -108,9 +108,9 @@ module PaddleRails
     # @return [String]
     def owner_sgid
       if owner.respond_to?(:to_sgid_param)
-        owner.to_sgid_param(for: "paddle_rails_owner")
+        owner.to_sgid_param(for: "paddle_rails_owner", expires_in: nil)
       elsif defined?(GlobalID::SignedGlobalID)
-        GlobalID::SignedGlobalID.create(owner, for: "paddle_rails_owner").to_s
+        GlobalID::SignedGlobalID.create(owner, for: "paddle_rails_owner", expires_in: nil).to_s
       else
         owner.to_s
       end
